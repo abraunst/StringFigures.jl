@@ -1,9 +1,10 @@
 module StringFigures
 
-include("stringposition.jl")
+include("linearsequence.jl")
 include("embedding.jl")
+include("functors.jl")
 
-export StringPosition, SeqNOde, release, isfarsidenext, isnearsidenext, 
-        canonical, plot, depth, @f_str, @n_str
-
+export LinearSequence, SeqNode, depth, @seq_str, @node_str, plot,
+        isfarsidenext, isnearsidenext, 
+        canonical, release, simplify
 end

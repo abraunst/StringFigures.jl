@@ -32,7 +32,7 @@ function lin2gauss(linseq)
     idx.(labels)
 end
 
-function graph(p::StringPosition)
+function graph(p::LinearSequence)
     n = depth(p)
     N = length(p)
     elist = [
@@ -170,7 +170,7 @@ function plot_linear_seq(lin)
 end
 
 
-function plot(p::StringPosition)
+function plot(p::LinearSequence)
     vfixed = 1:10
     g, vlabels = graph(p)
     N = depth(p)
