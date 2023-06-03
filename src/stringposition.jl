@@ -2,8 +2,8 @@ struct SeqNode
     type::Symbol
     idx::Int
     function SeqNode(type, idx)
-        type ∈ (:L, :R, :U, :O) || throw(ArgumentError("Wrong type"))
-        type ∉ (:L, :R) || 1 ≤ idx ≤ 5 || throw(ArgumentError("Wrong idx"))
+        type ∈ (:L, :R, :U, :O) || throw(ArgumentError("Wrong type $type"))
+        type ∉ (:L, :R) || 1 ≤ idx ≤ 5 || throw(ArgumentError("Wrong index $idx"))
         new(type, idx)
     end
 end
@@ -31,13 +31,14 @@ function index(s::SeqNode)
     elseif s.type ∈ (:U,:O)
         s.idx + 10
     end
-    #@assert false "bad node $s" 
 end
 
 
 function StringPosition(s::String)
-    labels = split(replace(s, " " => "", "{" => "(", "l" => "1", ";" => ":"), ":")
-    StringPosition(SeqNode.(labels))
+    # allow some fuzziness to be able to easily copy-paste 
+    # from Storer's OCR'd book :)
+    s = replace(s, " " => "", "{" => "(", "l" => "1", ";" => ":")
+    StringPosition(SeqNode.(split(s, ":")))
 end
 
 Base.length(p) = length(p.seq)
