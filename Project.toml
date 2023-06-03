@@ -3,6 +3,11 @@ uuid = "e16f4e6c-5f6e-4eb2-b51f-acfd3f8f7294"
 authors = ["Alfredo Braunstein"]
 version = "1.0.0-DEV"
 
+[deps]
+GraphPlot = "a2cc645c-3eea-5389-862e-a155d0052231"
+Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
 [compat]
 julia = "1"
 
