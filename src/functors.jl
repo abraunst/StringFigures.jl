@@ -1,5 +1,5 @@
 function release(p::LinearSequence, n::SeqNode)
-    @assert isframe(n)
+    @assert isframenode(n)
     p2 = LinearSequence(filter(!=(n), p.seq))
     canonical(p2)
 end

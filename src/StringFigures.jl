@@ -5,6 +5,6 @@ include("embedding.jl")
 include("functors.jl")
 
 export LinearSequence, SeqNode, depth, @seq_str, @node_str, plot,
-        isfarsidenext, isnearsidenext, 
+        isframenode, isfarsidenext, isnearsidenext, 
         canonical, release, simplify
 end

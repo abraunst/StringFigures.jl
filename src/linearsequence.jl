@@ -102,21 +102,21 @@ function canonical(p::LinearSequence)
     end |> LinearSequence
 end
 
-isframe(n::SeqNode) = n.type ∈ (:L, :R)
+isframenode(n::SeqNode) = n.type ∈ (:L, :R)
 
 function isfarsidenext(p::LinearSequence, n::SeqNode)
     i = findfirst(==(n), p)
     l, r = i, i
     for k in eachindex(p)
         pos = mod(i+k, eachindex(p))
-        if isframe(p[pos])
+        if isframenode(p[pos])
             r = pos
             break
         end
     end
     for k in eachindex(p)
         pos = mod(i-k, eachindex(p))
-        if isframe(p[pos])
+        if isframenode(p[pos])
             l = pos
             break
         end
@@ -127,7 +127,7 @@ function isfarsidenext(p::LinearSequence, n::SeqNode)
 
     crossings = 0
     for j in eachindex(p)
-        if !isframe(p[j]) && 
+        if !isframenode(p[j]) && 
             (l ≤ j ≤ i || j ≤ i ≤ l || i ≤ l ≤ j) &&
             (i ≤ j ≤ r || r ≤ i ≤ j || j ≤ r ≤ i)
             crossings += 1
