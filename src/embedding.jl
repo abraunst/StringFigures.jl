@@ -36,7 +36,7 @@ function graph(p::StringPosition)
     n = depth(p)
     N = length(p)
     elist = [
-        [Edge(index(p.seq[i]), n + i) for i=1:N]; 
+        [Edge(index(p.seq[i]), n + i) for i=1:N];
         [Edge(n + i, index(p.seq[mod1(i + 1, N)])) for i in 1:N]
     ]
     #elist = [(abs(gauss[i]), abs(gauss[mod1(i + 1, N)])) for i in 1:N]
@@ -49,7 +49,7 @@ function graph(p::StringPosition)
             "x$(i-10)"
         else
             ""
-        end 
+        end
     end
     vlabels = idx2label.(1:N+n)
     g = SimpleGraphFromIterator(elist)
