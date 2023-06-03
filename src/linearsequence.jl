@@ -82,6 +82,7 @@ function canonical(p::LinearSequence)
 
     # if the near side is next in the sequence, we need to revert
     rev = isnearsidenext(p, p[Lpos])
+    #@show L, Lpos, rev
 
     D = Dict{Int,Int}()
     idx = 1
@@ -124,11 +125,16 @@ function isfarsidenext(p::LinearSequence, n::SeqNode)
     #only 3 or more frame nodes! 
     @assert l != i && r != i 
 
-    #@show "left", p.seq[l] 
-    #@show "right", p.seq[r] 
-    @views Xl = Set(filter(!isframe, l < i ?  p.seq[l:i] : p.seq[i:l]))
-    @views Xr = Set(filter(!isframe, i < r ?  p.seq[i:r] : p.seq[r:i]))
-    xor(p.seq[l].idx < p.seq[r].idx, isodd(length(Xl ∩ Xr)))
+    crossings = 0
+    for j in eachindex(p)
+        if !isframe(p[j]) && 
+            (l ≤ j ≤ i || j ≤ i ≤ l || i ≤ l ≤ j) &&
+            (i ≤ j ≤ r || r ≤ i ≤ j || j ≤ r ≤ i)
+            crossings += 1
+        end
+    end
+    #@show l r p[l] p[r] crossings
+    xor(p[l].idx < p[r].idx, isodd(crossings))
 end
 
 isnearsidenext(p::LinearSequence, n::SeqNode) = !isfarsidenext(p, n)
@@ -148,3 +154,4 @@ Base.iterate(p::LinearSequence, s) = iterate(p.seq, s)
 Base.getindex(p::LinearSequence, i) = p.seq[i]
 Base.eachindex(p::LinearSequence) = eachindex(p.seq)
 Base.pairs(p::LinearSequence) = pairs(p.seq)
+Base.lastindex(p::LinearSequence) = lastindex(p.seq)
