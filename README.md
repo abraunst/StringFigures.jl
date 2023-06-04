@@ -19,7 +19,7 @@ This code attempts to implement the string figure calculus in Storer's book.
 - [x] basic: `simplify` (lemmas 2a and 2b in Storer's book)
 - [ ] advanced: $\phi_3$ moves and heuristics to decide when to apply it
 - [x] `pick` (pick from below)
-- [ ] pick from above (pick from below plus loop adition)
+- [ ] pick from above (pick from below plus loop addition)
 - [ ] pick non-standard arguments
 - [ ] Syntactic sugar for functors
 
