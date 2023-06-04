@@ -96,8 +96,7 @@ end
 
 isframenode(n::SeqNode) = n.type ∈ (:L, :R)
 
-function isfarsidenext(p::LinearSequence, n::SeqNode)
-    i = findfirst(==(n), p)
+function isfarsidenext(p::LinearSequence, i::Int)
     l, r = i, i
     for k in eachindex(p)
         pos = mod(i+k, eachindex(p))
@@ -129,7 +128,9 @@ function isfarsidenext(p::LinearSequence, n::SeqNode)
     xor(p[l].idx < p[r].idx, isodd(crossings))
 end
 
-isnearsidenext(p::LinearSequence, n::SeqNode) = !isfarsidenext(p, n)
+isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findfirst(==(n), p))
+
+isnearsidenext(p::LinearSequence, n::Union{Int, SeqNode}) = !isfarsidenext(p, n)
 
 Base.:(==)(p1::LinearSequence, p2::LinearSequence) = p1.seq == p2.seq
 
