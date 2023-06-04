@@ -16,7 +16,8 @@ This code attempts to implement the string figure calculus in Storer's book.
 - [ ] Better layout, better string physics?
 
 ### Calculus
-- [x] `simplify` (lemma 2 in Storer's book)
+- [x] basic: `simplify` (lemmas 2a and 2b in Storer's book)
+- [ ] advanced: $\sigma_3$ and heuristics to decide when to apply it
 - [x] `pick` (pick from below)
 - [ ] pick from above (pick from below plus loop adition)
 - [ ] pick non-standard arguments
