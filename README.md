@@ -20,4 +20,5 @@ This code attempts to implement the string figure calculus in Storer's book.
 - [x] `pick` (pick from below)
 - [ ] pick from above (pick from below plus loop adition)
 - [ ] pick non-standard arguments
+- [ ] Syntactic sugar for functors
 
