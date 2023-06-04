@@ -4,7 +4,7 @@ struct SeqNode
     function SeqNode(type, idx)
         idx ≥ 0 || throw(ArgumentError("Wrong index $idx"))
         type ∈ (:L, :R, :U, :O) || throw(ArgumentError("Wrong type $type"))
-        type ∉ (:L, :R) || 1 ≤ idx ≤ 5 || throw(ArgumentError("Wrong index $idx"))
+        #type ∉ (:L, :R) || 1 ≤ idx ≤ 5 || throw(ArgumentError("Wrong index $idx"))
         new(type, idx)
     end
 end
@@ -29,7 +29,7 @@ function LinearSequence(s::String)
     # allow some fuzziness to be able to easily copy-paste 
     # from Storer's OCR'd book :)
     s = replace(s, " " => "", "{" => "(", "l" => "1", ";" => ":", 
-        "O" => "0", "S" => "5", "X" => "x")
+        "O" => "0", "S" => "5", "X" => "x", "B" => "8")
     LinearSequence(SeqNode.(split(s, ":")))
 end
 
@@ -96,6 +96,8 @@ end
 
 isframenode(n::SeqNode) = n.type ∈ (:L, :R)
 
+numcrossings(p::LinearSequence) = maximum(n.idx for n in p if n.type ∈ (:U, :O); init = 0)
+
 function isfarsidenext(p::LinearSequence, i::Int)
     l, r = i, i
     for k in eachindex(p)
@@ -125,7 +127,7 @@ function isfarsidenext(p::LinearSequence, i::Int)
         end
     end
     #@show l r p[l] p[r] crossings
-    xor(p[l].idx < p[r].idx, isodd(crossings))
+    (p[l].idx < p[r].idx) != isodd(crossings)
 end
 
 isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findfirst(==(n), p))

@@ -46,11 +46,11 @@ function simplify(p::LinearSequence)
     return p
 end
 
-function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
+function pick_sameside(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
     @assert f.type == arg.type # only on the same side
     isframenode(arg) || throw(ArgumentError("Only frame nodes can identify sectors"))
     isframenode(f) || throw(ArgumentError("Only frame nodes can be functors"))
-    nold = maximum(n.idx for n in p if n.type ∈ (:U, :O); init = 0) 
+    nold = numcrossings(p) 
     n = nold + 1
     @assert findfirst(==(f), p) === nothing
     i = findfirst(==(arg), p) 
@@ -59,40 +59,44 @@ function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Boo
     function addpair(x, U, b)
         append!(newcross[mod(x, eachindex(p))], 
             (SeqNode(U, n + b), SeqNode(U, n + !b)))
-        println("adding pair ", newcross[mod(x, eachindex(p))], " at pos $x($(p[x]))" )
+        #println("adding pair ", newcross[mod(x, eachindex(p))], " at pos $x($(p[x-1])↓$(p[x]))" )
         n += 2
     end
     (U, O) = over ? (:U, :O) : (:O, :U)
 
+    # is the functor below the arg?
     fbelow = f.idx < arg.idx
+    # is the arg of the functor on the right of i in the seq?
+    argnext = (near == isnearsidenext(p, i))
 
-    for j in i+1:i+lastindex(p)
-        middle = (p[j].idx - f.idx) * (p[j].idx - arg.idx) < 0
+    # eventual crossing in the arg node 
+    if fbelow != near
+        addpair(i + !argnext, U, !argnext)
+    end
+
+    middle = [(n.idx,j) for (j,n) in pairs(p) if 
+        p[j].type == f.type && (p[j].idx-f.idx)*(p[j].idx-arg.idx) < 0]
+    sort!(middle; rev=(f.idx < arg.idx))
+
+    #@show [p[j] for (_,j) in middle]
+
+    for (_,j) in middle
         # intermediate active frame node
-        if p[j].type == f.type && middle
-            farnext = isfarsidenext(p, j)  
-            cnext = (fbelow == farnext)
-            addpair(j + cnext, U, cnext)
-            addpair(j + !cnext, U, !cnext)
-        end
+        farnext = isfarsidenext(p, j)  
+        # are the first two new crossings on the right of j in the seq?
+        cnext = (fbelow == farnext)
+        addpair(j + cnext, U, cnext)
+        addpair(j + !cnext, U, !cnext)
     end
-
-    # eventual crossing in the arg node
-    farnext = isfarsidenext(p, i)
-    cnext = fbelow == farnext # is the crossing on the next string
-    if fbelow != near #extra crossings on arg
-        @show "in arg"
-        addpair(i + cnext, U, cnext)
-    end
-
+    #cnext = (fbelow == isfarsidenext(p, i))
     # add spike
     c = Iterators.flatten((
         (SeqNode(O, j) for j in nold+1:2:n-2),
         (f,),
         (SeqNode(O, j) for j in n-1:-2:nold+2)))
-
-    append!(newcross[mod(i + !cnext, eachindex(p))],
-            cnext ? c : Iterators.reverse(c)) 
+    #@show newcross
+    append!(newcross[mod(i + argnext, eachindex(p))],
+            !argnext ? c : Iterators.reverse(c)) 
 
     # build new linear sequence inserting all new crossings 
     vnew = SeqNode[]
@@ -100,5 +104,15 @@ function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Boo
         append!(vnew, newcross[j])
         push!(vnew, p[j])
     end
+    #canonical(LinearSequence(vnew))
     LinearSequence(vnew)
+end
+
+function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
+    f.type == arg.type && return pick_sameside(over, p, f, arg, near)
+    p = pick_sameside(over, p, SeqNode(arg.type, 0), arg, near)
+    i = findfirst(==(SeqNode(arg.type, 0)), p)
+    p.seq[i] = SeqNode(f.type, 0)
+    p = pick_sameside(over, p, f, p[i], near)
+    release(p, SeqNode(f.type, 0))
 end
