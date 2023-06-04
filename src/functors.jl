@@ -47,6 +47,7 @@ function simplify(p::LinearSequence)
 end
 
 function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
+    @assert f.type == arg.type # only on the same side
     isframenode(arg) || throw(ArgumentError("Only frame nodes can identify sectors"))
     isframenode(f) || throw(ArgumentError("Only frame nodes can be functors"))
     nold = maximum(n.idx for n in p if n.type ∈ (:U, :O); init = 0) 
@@ -54,34 +55,33 @@ function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Boo
     @assert findfirst(==(f), p) === nothing
     i = findfirst(==(arg), p) 
     !isnothing(i) || throw(ArgumentError("Non existing argument"))
-    @assert f.type == arg.type # for the moment, only on the same side
     newcross = [SeqNode[] for _ in eachindex(p)]
     function addpair(x, U, b)
         append!(newcross[mod(x, eachindex(p))], 
             (SeqNode(U, n + b), SeqNode(U, n + !b)))
+        println("adding pair ", newcross[mod(x, eachindex(p))], " at pos $x($(p[x]))" )
         n += 2
     end
     (U, O) = over ? (:U, :O) : (:O, :U)
 
-    @show over
+    fbelow = f.idx < arg.idx
 
     for j in i+1:i+lastindex(p)
         middle = (p[j].idx - f.idx) * (p[j].idx - arg.idx) < 0
         # intermediate active frame node
         if p[j].type == f.type && middle
-            @show p[j]
             farnext = isfarsidenext(p, j)  
-            cnext = fbelow == farnext
-            addpair(j + cnext, U, !cnext)
-            addpair(j + !cnext, U, cnext)
+            cnext = (fbelow == farnext)
+            addpair(j + cnext, U, cnext)
+            addpair(j + !cnext, U, !cnext)
         end
     end
 
-    # the arg node
+    # eventual crossing in the arg node
     farnext = isfarsidenext(p, i)
-    fbelow = f.idx < arg.idx
     cnext = fbelow == farnext # is the crossing on the next string
     if fbelow != near #extra crossings on arg
+        @show "in arg"
         addpair(i + cnext, U, cnext)
     end
 
@@ -94,10 +94,11 @@ function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Boo
     append!(newcross[mod(i + !cnext, eachindex(p))],
             cnext ? c : Iterators.reverse(c)) 
 
+    # build new linear sequence inserting all new crossings 
     vnew = SeqNode[]
     for j in eachindex(p)
         append!(vnew, newcross[j])
         push!(vnew, p[j])
     end
-    canonical(LinearSequence(vnew))
+    LinearSequence(vnew)
 end
