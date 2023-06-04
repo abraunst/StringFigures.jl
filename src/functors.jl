@@ -46,7 +46,7 @@ function simplify(p::LinearSequence)
     return canonical(p)
 end
 
-function pick_sameside(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
+function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool)
     @assert f.type == arg.type # only on the same side
     isframenode(arg) || throw(ArgumentError("Only frame nodes can identify sectors"))
     isframenode(f) || throw(ArgumentError("Only frame nodes can be functors"))
@@ -107,12 +107,45 @@ function pick_sameside(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, 
     canonical(LinearSequence(vnew))
 end
 
-function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
-    f.type == arg.type && return pick_sameside(over, p, f, arg, near)
+function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool)
+    f.type == arg.type && return pick_sameside(p, over, f, arg, near)
     extra = f.idx > arg.idx ? 6 : 0
-    p = pick_sameside(over, p, SeqNode(arg.type, extra), arg, near)
+    p = pick_sameside(p, over, SeqNode(arg.type, extra), arg, near)
     i = findfirst(==(SeqNode(arg.type, extra)), p)
     p.seq[i] = SeqNode(f.type, extra)
-    p = pick_sameside(over, p, f, p[i], near)
+    p = pick_sameside(p, over, f, p[i], near)
     release(p, SeqNode(f.type, extra))
+end
+
+
+abstract type Functor end
+
+struct ExtendFunctor <: Functor end
+
+(f::ExtendFunctor)(p::LinearSequence) = simplify(p)
+
+struct PickFunctor <: Functor
+    fun::SeqNode
+    arg::SeqNode
+    near::Bool
+    over::Bool
+end
+
+(f::PickFunctor)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near)
+
+struct ReleaseFunctor <: Functor
+    arg::SeqNode
+end
+
+(f::ReleaseFunctor)(p::LinearSequence) = release(p, f.arg)
+
+
+macro f_str(s)
+    m = match(r"\|", s)
+    !isnothing(m) && return ExtendFunctor()
+    m = match(r"□([LR]\d+)", s) 
+    !isnothing(m) && return ReleaseFunctor(SeqNode(m[1]))
+    m = match(r"([LR]\d+)([ou])\(([LR]\d+)([nf])\)", s) 
+    !isnothing(m) && return PickFunctor(SeqNode(m[1]),SeqNode(m[3]), m[4] == "n", m[2] == "o")
+    throw(ArgumentError("Could not parse $s"))
 end
