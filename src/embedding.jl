@@ -1,10 +1,8 @@
 using LinearAlgebra, Graphs, GraphPlot, Colors
 
 
-function tutte_embedding(g; vfixed=1:10,
-        px = [-0.5 .* cos.([-π/2; 0.0:π/6:π/2]); 0.5 .* cos.([-π/2; 0.0:π/6:π/2]) .+ 3],
-        py = -[sin.([-π/2; 0.0:π/6:π/2]); sin.([-π/2; 0.0:π/6:π/2])])
-        nfixed = length(vfixed)
+function tutte_embedding(g; vfixed=1:0, px=Float64[], py=Float64[])
+    nfixed = length(vfixed)
     A = adjacency_matrix(g)
     @assert issymmetric(A)
     n = size(A, 1)
@@ -19,13 +17,22 @@ function tutte_embedding(g; vfixed=1:10,
     v[:,1], v[:,2]
 end
 
+function index(s::SeqNode)
+    if s.type == :L
+        s.idx
+    elseif s.type == :R 
+        s.idx + 5
+    elseif s.type ∈ (:U,:O)
+        s.idx + 10
+    end
+end
 
 function graph(p::LinearSequence)
     n = depth(p)
     N = length(p)
     elist = [
-        [Edge(index(p.seq[i]), n + i) for i=1:N];
-        [Edge(n + i, index(p.seq[mod1(i + 1, N)])) for i in 1:N]
+        [Edge(index(p[i]), n + i) for i=1:N];
+        [Edge(n + i, index(p[i + 1])) for i in 1:N]
     ]
     #elist = [(abs(gauss[i]), abs(gauss[mod1(i + 1, N)])) for i in 1:N]
     function idx2label(i)
@@ -44,11 +51,11 @@ function graph(p::LinearSequence)
     g, vlabels
 end
 
-
+# Copied and modified from GraphLayout.jl
 function spring_layout_fixed(g::AbstractGraph;
         locs_x = 2 .* rand(nv(g)) .- 1.0,
         locs_y = 2 .* rand(nv(g)) .- 1.0,
-        fixed = 1:0,
+        vfixed = 1:0,
         C = 2.0,
         k = C * sqrt(4.0 / nv(g)),
         MAXITER = 100,
@@ -95,7 +102,7 @@ function spring_layout_fixed(g::AbstractGraph;
         temp = INITTEMP / iter
         # Now apply them, but limit to temperature
         for i in 1:nv(g)
-            i ∈ fixed && continue
+            i ∈ vfixed && continue
             force_mag  = sqrt(force_x[i]^2 + force_y[i]^2)
             scale      = min(force_mag, temp) / force_mag
             locs_x[i] += force_x[i] * scale
@@ -105,18 +112,28 @@ function spring_layout_fixed(g::AbstractGraph;
     return locs_x, locs_y
 end
 
+"""
 
-function plot(p::LinearSequence)
-    vfixed = 1:10
+"""
+function plot(p::LinearSequence; kwd...)
     g, vlabels = graph(p)
     N = depth(p)
+    θ = [-π/2; 0.0:π/6:π/2]
     add_vertices!.((g,), N-nv(g))
-    px, py = tutte_embedding(g);
-    px[11:end] .+= randn.().*0.03
-    py[11:end] .+= randn.().*0.03
-    px, py = spring_layout_fixed(g; fixed=1:10, locs_x = px, locs_y = py, k = 0.05)
-    gplot(g, px, py;
-        NODELABELSIZE=2.0, NODESIZE=0.005, nodelabel=vlabels, nodesize=[i ≤ N ? 1.0 : 0.0 for i in 1:nv(g)],
+    # fix position of frame nodes
+    vfixed = 1:10
+    px = [-0.5 .* cos.(θ); 0.5 .* cos.(θ) .+ 3]
+    py = [       -sin.(θ);       -sin.(θ)     ]
+    # find Tutte embeding
+    locs_x, locs_y = tutte_embedding(g; vfixed, px, py);
+    # randomize internal nodes a little bit
+    locs_x[11:end] .+= randn.().*0.03
+    locs_y[11:end] .+= randn.().*0.03
+    # find spring embedding with small repulsive forces
+    locs_x, locs_y = spring_layout_fixed(g; vfixed, locs_x, locs_y, k = 0.05)
+    gplot(g, locs_x, locs_y;
+        NODELABELSIZE=2.0, NODESIZE=0.005, nodelabel=vlabels, 
+        nodesize=[i ≤ N ? 1.0 : 0.0 for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
-        EDGELINEWIDTH=0.2, nodelabeldist=9, nodelabelc=colorant"white")
+        EDGELINEWIDTH=0.2, nodelabeldist=9, nodelabelc=colorant"white", kwd...)
 end

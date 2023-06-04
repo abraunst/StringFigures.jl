@@ -19,15 +19,7 @@ function SeqNode(s)
     @assert false "Impossible to parse $s"
 end
 
-function index(s::SeqNode)
-    if s.type == :L
-        s.idx
-    elseif s.type == :R 
-        s.idx + 5
-    elseif s.type ∈ (:U,:O)
-        s.idx + 10
-    end
-end
+Base.:(<)(s::SeqNode, t::SeqNode) = s.idx < t.idx
 
 struct LinearSequence
     seq::Vector{SeqNode}
@@ -151,7 +143,7 @@ end
 
 Base.iterate(p::LinearSequence) = iterate(p.seq)
 Base.iterate(p::LinearSequence, s) = iterate(p.seq, s)
-Base.getindex(p::LinearSequence, i) = p.seq[i]
+Base.getindex(p::LinearSequence, i) = p.seq[mod(i,eachindex(p))]
 Base.eachindex(p::LinearSequence) = eachindex(p.seq)
 Base.pairs(p::LinearSequence) = pairs(p.seq)
 Base.lastindex(p::LinearSequence) = lastindex(p.seq)
