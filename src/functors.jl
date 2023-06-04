@@ -43,7 +43,7 @@ function simplify(p::LinearSequence)
         #@show rem
         deleteat!(p.seq, sort!(rem))
     end
-    return p
+    return canonical(p)
 end
 
 function pick_sameside(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
@@ -104,8 +104,7 @@ function pick_sameside(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, 
         append!(vnew, newcross[j])
         push!(vnew, p[j])
     end
-    #canonical(LinearSequence(vnew))
-    LinearSequence(vnew)
+    canonical(LinearSequence(vnew))
 end
 
 function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
