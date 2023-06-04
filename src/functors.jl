@@ -109,9 +109,10 @@ end
 
 function pick(over::Bool, p::LinearSequence, f::SeqNode, arg::SeqNode, near::Bool)
     f.type == arg.type && return pick_sameside(over, p, f, arg, near)
-    p = pick_sameside(over, p, SeqNode(arg.type, 0), arg, near)
-    i = findfirst(==(SeqNode(arg.type, 0)), p)
-    p.seq[i] = SeqNode(f.type, 0)
+    extra = f.idx > arg.idx ? 6 : 0
+    p = pick_sameside(over, p, SeqNode(arg.type, extra), arg, near)
+    i = findfirst(==(SeqNode(arg.type, extra)), p)
+    p.seq[i] = SeqNode(f.type, extra)
     p = pick_sameside(over, p, f, p[i], near)
-    release(p, SeqNode(f.type, 0))
+    release(p, SeqNode(f.type, extra))
 end
