@@ -14,7 +14,7 @@ This code attempts to implement the string figure calculus in Storer's book.
 ### Visualization
 
 - [x] Elementary visualization (no crossings)
-- [ ] Crossings @abraunst
+- [x] Crossings visualization
 - [ ] Better layout, better string physics?
 
 ### Calculus
