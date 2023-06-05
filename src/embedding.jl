@@ -1,4 +1,4 @@
-using LinearAlgebra, Graphs, GraphPlot, Colors
+using LinearAlgebra, Graphs, GraphPlot, Colors, Compose
 
 
 function tutte_embedding(g; vfixed=1:0, px=Float64[], py=Float64[])
@@ -34,7 +34,6 @@ function graph(p::LinearSequence)
         [Edge(index(p[i]), n + i) for i=1:N];
         [Edge(n + i, index(p[i + 1])) for i in 1:N]
     ]
-    #elist = [(abs(gauss[i]), abs(gauss[mod1(i + 1, N)])) for i in 1:N]
     function idx2label(i)
         if i <= 5
             "L$i"
@@ -113,9 +112,12 @@ function spring_layout_fixed(g::AbstractGraph;
 end
 
 """
+plot(p::LinearSequence; kwd...)
 
+Plots p using Tutte embedding plus a very small repulsive force. 
+Use kwd... to pass options to gplot. 
 """
-function plot(p::LinearSequence; kwd...)
+function plot(p::LinearSequence; rfact=0.02, k=0.0, labels=true, shadowc = colorant"black", kwd...)
     g, vlabels = graph(p)
     N = depth(p)
     θ = [-π/2; 0.0:π/6:π/2]
@@ -126,14 +128,52 @@ function plot(p::LinearSequence; kwd...)
     py = [       -sin.(θ);       -sin.(θ)     ]
     # find Tutte embeding
     locs_x, locs_y = tutte_embedding(g; vfixed, px, py);
-    # randomize internal nodes a little bit
-    locs_x[11:end] .+= randn.().*0.03
-    locs_y[11:end] .+= randn.().*0.03
-    # find spring embedding with small repulsive forces
-    locs_x, locs_y = spring_layout_fixed(g; vfixed, locs_x, locs_y, k = 0.05)
-    gplot(g, locs_x, locs_y;
-        NODELABELSIZE=2.0, NODESIZE=0.005, nodelabel=vlabels, 
-        nodesize=[i ≤ N ? 1.0 : 0.0 for i in 1:nv(g)],
+    # move internal nodes a little bit
+    for i in eachindex(p)
+        #(isframenode(p[i]) || isframenode(p[i+1])) && continue
+        P1 = [locs_x[index(p[i+1])], locs_y[index(p[i+1])]]
+        P2 = [locs_x[index(p[i+2])], locs_y[index(p[i+2])]]
+        P3 = [locs_x[index(p[i  ])], locs_y[index(p[i  ])]]
+        P4 = [locs_x[index(p[i-1])], locs_y[index(p[i-1])]]
+        Q = (P1 + P3)/2
+        locs_x[N + i] = Q[1]
+        locs_y[N + i] = Q[2]
+        P12 = (P1-P2)/norm(P1-P2)
+        P34 = (P3-P4)/norm(P3-P4)
+        P13 = (P1-P3)/norm(P1-P3)
+        D = P12 + P34 - ((P12 + P34) ⋅ P13) * P13
+        locs_x[N + i] += D[1] * rfact 
+        locs_y[N + i] += D[2] * rfact
+    end
+    if k > 0
+        # find spring embedding with small repulsive forces
+        locs_x, locs_y = spring_layout_fixed(g; vfixed, locs_x, locs_y, k)
+    end
+    pl0 = gplot(g, locs_x, locs_y;
+        NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=0.8, edgestrokec=shadowc)
+    underlist = [
+        [Edge(index(p[i]), N + i) for i in eachindex(p) if p[i].type == :U];
+        [Edge(N + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type == :U]
+    ] 
+    gunder = SimpleGraphFromIterator(underlist)
+    pl1 = gplot(gunder, locs_x, locs_y; NODESIZE=0.0, EDGELINEWIDTH=0.2)
+    
+    overlist = [
+        [Edge(index(p[i]), N + i) for i in eachindex(p) if p[i].type ∈ (:O,:L,:R)];
+        [Edge(N + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type ∈ (:O,:L,:R)]
+    ]
+    
+    gover = SimpleGraphFromIterator(overlist)
+    add_vertices!(gover, nv(g)-nv(gover))
+    pl2 = gplot(gover, locs_x, locs_y;
+        NODELABELSIZE=0.0, NODESIZE=0.01, nodesize=[i < N ? 1.0 : 0.0 for i=1:nv(g)], nodefillc=shadowc, EDGELINEWIDTH=1.0, edgestrokec=shadowc)
+
+    pl3 = gplot(gover, locs_x, locs_y;
+        EDGELINEWIDTH=0.2, edgestrokec=colorant"white",
+        NODESIZE=0.005, nodesize=[i ≤ N ? 1.0 : 0.0 for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
-        EDGELINEWIDTH=0.2, nodelabeldist=9, nodelabelc=colorant"white", kwd...)
-end
+        NODELABELSIZE=2.0, nodelabel=labels ? vlabels : nothing, nodelabeldist=9, nodelabelc=colorant"white", kwd...
+        )
+
+    compose(pl3,pl2,pl1,pl0)
+    end
