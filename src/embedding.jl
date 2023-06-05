@@ -117,7 +117,8 @@ plot(p::LinearSequence; kwd...)
 Plots p using Tutte embedding plus a very small repulsive force. 
 Use kwd... to pass options to gplot. 
 """
-function plot(p::LinearSequence; rfact=0.02, k=0.0, labels=true, shadowc = colorant"black", kwd...)
+function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, 
+            labels=true, shadowc = colorant"black", kwd...)
     g, vlabels = graph(p)
     N = depth(p)
     θ = [-π/2; 0.0:π/6:π/2]
@@ -129,6 +130,10 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, labels=true, shadowc = color
     # find Tutte embeding
     locs_x, locs_y = tutte_embedding(g; vfixed, px, py);
     # move internal nodes a little bit
+    if randomize
+        locs_x[1:end] .+= randn.() * rfact
+        locs_y[1:end] .+= randn.() * rfact
+    end
     for i in eachindex(p)
         #(isframenode(p[i]) || isframenode(p[i+1])) && continue
         P1 = [locs_x[index(p[i+1])], locs_y[index(p[i+1])]]
@@ -142,8 +147,8 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, labels=true, shadowc = color
         P34 = (P3-P4)/norm(P3-P4)
         P13 = (P1-P3)/norm(P1-P3)
         D = P12 + P34 - ((P12 + P34) ⋅ P13) * P13
-        locs_x[N + i] += D[1] * rfact 
-        locs_y[N + i] += D[2] * rfact
+        locs_x[N + i] += isnan(D[1]) ? 0.0 : D[1] * rfact 
+        locs_y[N + i] += isnan(D[2]) ? 0.0 : D[2] * rfact
     end
     if k > 0
         # find spring embedding with small repulsive forces
@@ -166,14 +171,16 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, labels=true, shadowc = color
     gover = SimpleGraphFromIterator(overlist)
     add_vertices!(gover, nv(g)-nv(gover))
     pl2 = gplot(gover, locs_x, locs_y;
-        NODELABELSIZE=0.0, NODESIZE=0.01, nodesize=[i < N ? 1.0 : 0.0 for i=1:nv(g)], nodefillc=shadowc, EDGELINEWIDTH=1.0, edgestrokec=shadowc)
+        NODELABELSIZE=0.0, NODESIZE=0.01, nodesize=[i < N ? 1.0 : 0.0 for i=1:nv(g)], 
+        nodefillc=shadowc, EDGELINEWIDTH=1.0, edgestrokec=shadowc)
 
     pl3 = gplot(gover, locs_x, locs_y;
         EDGELINEWIDTH=0.2, edgestrokec=colorant"white",
         NODESIZE=0.005, nodesize=[i ≤ N ? 1.0 : 0.0 for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
-        NODELABELSIZE=2.0, nodelabel=labels ? vlabels : nothing, nodelabeldist=9, nodelabelc=colorant"white", kwd...
+        NODELABELSIZE=2.0, nodelabel=labels ? vlabels : nothing, nodelabeldist=9, 
+        nodelabelc=colorant"white", kwd...
         )
 
     compose(pl3,pl2,pl1,pl0)
-    end
+end
