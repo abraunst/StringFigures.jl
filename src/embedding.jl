@@ -112,10 +112,16 @@ function spring_layout_fixed(g::AbstractGraph;
 end
 
 """
-plot(p::LinearSequence; kwd...)
+`plot(p::LinearSequence; rfact, k, randomize, labels, shadowc, kwd...)`
 
-Plots p using Tutte embedding plus a very small repulsive force. 
-Use kwd... to pass options to gplot. 
+Plots `p` using Tutte embedding. Parallel edges are then separated by slightly translating them perpendicularly to the segment joining the two vertices.
+
+* `k::Float64`:        Set `k>0` to relayout using a very small repulsive force (`0.0`).
+* `rfact::Float64`:    Distance between parallel edges (`0.02`)
+* `randomize::Bool`:   Slightly randomize positions (`false`) 
+* `labels::Bool`:      Add labels to the plot (`true`)
+* `shadowc::colorant`: Color of the string shadow (`colorant"black"`)
+* `kwd...`:            Additional options for gplot (`(;)`)
 """
 function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, 
             labels=true, shadowc = colorant"black", kwd...)
