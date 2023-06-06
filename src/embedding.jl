@@ -1,4 +1,4 @@
-using LinearAlgebra, Graphs, GraphPlot, Colors, Compose
+using LinearAlgebra, Graphs, GraphPlot, Colors, Compose, StaticArrays
 
 
 function tutte_embedding(g; vfixed=1:0, px=Float64[], py=Float64[])
@@ -142,19 +142,19 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
     end
     for i in eachindex(p)
         #(isframenode(p[i]) || isframenode(p[i+1])) && continue
-        P1 = [locs_x[index(p[i+1])], locs_y[index(p[i+1])]]
-        P2 = [locs_x[index(p[i+2])], locs_y[index(p[i+2])]]
-        P3 = [locs_x[index(p[i  ])], locs_y[index(p[i  ])]]
-        P4 = [locs_x[index(p[i-1])], locs_y[index(p[i-1])]]
+        P1 = SVector(locs_x[index(p[i+1])], locs_y[index(p[i+1])])
+        P2 = SVector(locs_x[index(p[i+2])], locs_y[index(p[i+2])])
+        P3 = SVector(locs_x[index(p[i  ])], locs_y[index(p[i  ])])
+        P4 = SVector(locs_x[index(p[i-1])], locs_y[index(p[i-1])])
         Q = (P1 + P3)/2
         locs_x[N + i] = Q[1]
         locs_y[N + i] = Q[2]
-        P12 = (P1-P2)/norm(P1-P2)
-        P34 = (P3-P4)/norm(P3-P4)
-        P13 = (P1-P3)/norm(P1-P3)
+        P12 = iszero(P1-P2) ? SVector(0.0,0.0) : (P1-P2)/norm(P1-P2)
+        P34 = iszero(P3-P4) ? SVector(0.0,0.0) : (P3-P4)/norm(P3-P4)
+        P13 = iszero(P1-P3) ? SVector(0.0,0.0) : (P1-P3)/norm(P1-P3)
         D = P12 + P34 - ((P12 + P34) ⋅ P13) * P13
-        locs_x[N + i] += isnan(D[1]) ? 0.0 : D[1] * rfact 
-        locs_y[N + i] += isnan(D[2]) ? 0.0 : D[2] * rfact
+        locs_x[N + i] += D[1] * rfact 
+        locs_y[N + i] += D[2] * rfact
     end
     if k > 0
         # find spring embedding with small repulsive forces

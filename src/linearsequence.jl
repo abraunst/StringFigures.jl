@@ -172,3 +172,4 @@ Base.getindex(p::LinearSequence, i::AbstractVector) = @inbounds p.seq[mod.(i,eac
 Base.eachindex(p::LinearSequence) = eachindex(p.seq)
 Base.pairs(p::LinearSequence) = pairs(p.seq)
 Base.lastindex(p::LinearSequence) = lastindex(p.seq)
+Base.firstindex(p::LinearSequence) = firstindex(p.seq)
