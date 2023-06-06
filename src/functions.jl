@@ -117,3 +117,7 @@ function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Boo
     release(p, SeqNode(f.type, extra))
 end
 
+
+function Base.:(==)(p::LinearSequence, q::LinearSequence)
+    canonical(p).seq == canonical(q).seq
+end

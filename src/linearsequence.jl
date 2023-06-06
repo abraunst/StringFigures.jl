@@ -62,6 +62,29 @@ function Base.show(io::IO, p::LinearSequence)
     print(io, "seq\"", join(string.(p.seq),":"), "\"")
 end
 
+function iscanonical(p::LinearSequence)
+    # find first active left finger
+    L, Lpos = 11, 0
+    for (i,n) in pairs(p)
+        if n.type == :L && n.idx < L
+            L, Lpos = n.idx, i
+        end
+    end
+    isnearsidenext(p, p[Lpos]) && return false
+    last = 0
+    for j in (eachindex(p) .+ (Lpos - 1))
+        if p[j].type ∈ (:O, :U)
+            if p[j].idx > last + 1 
+                return false
+            elseif p[j].idx > last
+                last += 1
+            end
+        end
+    end
+    return true
+end
+
+
 
 function canonical(p::LinearSequence)
     # find first active left finger
@@ -81,7 +104,7 @@ function canonical(p::LinearSequence)
 
     #rebuild the sequence in canonical order
     map(eachindex(p)) do i
-        n = p.seq[mod(rev ? Lpos - i + 1 : Lpos + i - 1, eachindex(p))]
+        n = p[rev ? Lpos - i + 1 : Lpos + i - 1]
         if n.type ∈ (:L, :R)
             n
         else
@@ -134,8 +157,6 @@ isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findfirst(==(n),
 
 isnearsidenext(p::LinearSequence, n::Union{Int, SeqNode}) = !isfarsidenext(p, n)
 
-Base.:(==)(p1::LinearSequence, p2::LinearSequence) = p1.seq == p2.seq
-
 macro seq_str(s)
     LinearSequence(s)
 end
@@ -146,7 +167,8 @@ end
 
 Base.iterate(p::LinearSequence) = iterate(p.seq)
 Base.iterate(p::LinearSequence, s) = iterate(p.seq, s)
-Base.getindex(p::LinearSequence, i) = p.seq[mod(i,eachindex(p))]
+Base.getindex(p::LinearSequence, i) = @inbounds p.seq[mod(i,eachindex(p))]
+Base.getindex(p::LinearSequence, i::AbstractVector) = @inbounds p.seq[mod.(i,eachindex(p))]
 Base.eachindex(p::LinearSequence) = eachindex(p.seq)
 Base.pairs(p::LinearSequence) = pairs(p.seq)
 Base.lastindex(p::LinearSequence) = lastindex(p.seq)

@@ -2,5 +2,14 @@ using StringFigures
 using Test
 
 @testset "StringFigures.jl" begin
-    # Write your tests here.
+    # Example in Fig. 10, pag 12
+    fig10 = seq"L1:L5:x1(0):x2(0):x2(U):x3(0):R5:R1:x3(U):x1(U)"
+    @test simplify(fig10) == seq"L1:L5:R5:R1"
+    @test iscanonical(seq"L1:x1(U):L2:x3(U):x1(O):R2:x3(O):R1") == false
+    twist = LinearSequence(vcat(SeqNode(:L,2), SeqNode(:L,3),
+        [[SeqNode(:U,i); SeqNode(:O,i)] for i=1:100]...,
+        SeqNode(:R,3),
+        SeqNode(:R,2),
+        [[SeqNode(:O,i); SeqNode(:U,i)] for i=100:-1:1]...))
+    @test simplify(twist) == seq"L2:L3:R3:R2"
 end
