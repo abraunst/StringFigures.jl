@@ -25,7 +25,16 @@ string(f::ReleaseFunctor) = "□$(string(f.arg))"
 
 (f::ReleaseFunctor)(p::LinearSequence) = release(p, f.arg)
 
-
+"""
+A Heart sequence describes an algorithm or procedure that
+can be applied to a string. It is represented as list of transformations
+(Functors). You can build a `HeartSequence` by using the
+special notation `heart\"<seq>\"` where `<seq>` is a list of
+Functors separated by `:`. Heart sequences can be:
+* Used as functions on a `LinearSequence`, producing a new `LinearSequence`
+* Multiplied to other `HeartSequence`s or `Functor`s (concatenating the instructions)
+* Elevated to some power (repeating the same statements)
+"""
 struct HeartSequence 
     seq::Vector{Functor}
 end
