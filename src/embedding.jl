@@ -141,14 +141,11 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
         locs_y[1:end] .+= randn.() * rfact
     end
     for i in eachindex(p)
-        #(isframenode(p[i]) || isframenode(p[i+1])) && continue
         P1 = SVector(locs_x[index(p[i+1])], locs_y[index(p[i+1])])
         P2 = SVector(locs_x[index(p[i+2])], locs_y[index(p[i+2])])
         P3 = SVector(locs_x[index(p[i  ])], locs_y[index(p[i  ])])
         P4 = SVector(locs_x[index(p[i-1])], locs_y[index(p[i-1])])
-        Q = (P1 + P3)/2
-        locs_x[N + i] = Q[1]
-        locs_y[N + i] = Q[2]
+        locs_x[N + i], locs_y[N + i] = (P1 + P3)/2
         P12 = iszero(P1-P2) ? SVector(0.0,0.0) : (P1-P2)/norm(P1-P2)
         P34 = iszero(P3-P4) ? SVector(0.0,0.0) : (P3-P4)/norm(P3-P4)
         P13 = iszero(P1-P3) ? SVector(0.0,0.0) : (P1-P3)/norm(P1-P3)
