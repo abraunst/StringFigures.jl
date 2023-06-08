@@ -2,7 +2,7 @@ abstract type Functor end
 
 struct ExtendFunctor <: Functor end
 
-string(f::ExtendFunctor) = "|"
+Base.string(f::ExtendFunctor) = "|"
 
 (f::ExtendFunctor)(p::LinearSequence) = simplify(p)
 
@@ -13,7 +13,7 @@ struct PickFunctor <: Functor
     over::Bool
 end
 
-string(f::PickFunctor) = "$(string(f.fun))$(f.over ? "o" : "u")($(string(f.arg))$(f.near ? "n" : "f"))"
+Base.string(f::PickFunctor) = "$(string(f.fun))$(f.over ? "o" : "u")($(string(f.arg))$(f.near ? "n" : "f"))"
 
 (f::PickFunctor)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near)
 
@@ -21,7 +21,7 @@ struct ReleaseFunctor <: Functor
     arg::SeqNode
 end
 
-string(f::ReleaseFunctor) = "□$(string(f.arg))"
+Base.string(f::ReleaseFunctor) = "□$(string(f.arg))"
 
 (f::ReleaseFunctor)(p::LinearSequence) = release(p, f.arg)
 
