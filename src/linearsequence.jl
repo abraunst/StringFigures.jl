@@ -29,7 +29,7 @@ function LinearSequence(s::String)
     # allow some fuzziness to be able to easily copy-paste 
     # from Storer's OCR'd book :)
     s = replace(s, " " => "", "{" => "(", "l" => "1", ";" => ":", 
-        "O" => "0", "S" => "5", "X" => "x", "B" => "8")
+        "O" => "0", "S" => "5", "X" => "x", "B" => "8", "B" => "8")
     LinearSequence(SeqNode.(split(s, ":")))
 end
 
