@@ -119,5 +119,5 @@ end
 
 
 function Base.:(==)(p::LinearSequence, q::LinearSequence)
-    canonical(p).seq == canonical(q).seq
+    (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)
 end
