@@ -27,3 +27,4 @@ This code attempts to implement the string figure calculus in Storer's book.
 - [ ] pick non-standard arguments
 - [x] Syntactic sugar for functors
 - [x] Elementary Heart sequences
+- [ ] Several loops on one finger, non-finger framenodes, pick from non-empty framenode
