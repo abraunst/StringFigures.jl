@@ -110,11 +110,11 @@ end
 
 function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool)
     f.type == arg.type && return pick_sameside(p, over, f, arg, near)
-    extra = f.idx > arg.idx ? 6 : 0
+    extra = f.idx > arg.idx ? 0 : 6 ## check
     farg, ffun = SeqNode(arg.type, extra), SeqNode(f.type, extra)
     p = pick_sameside(p, over, farg, arg, near)
     p.seq[findfirst(==(farg), p)] = ffun
-    println(p)
+    #println(p)
     p = pick_sameside(p, over, f, ffun, f.idx < extra)
     release(p, ffun) |> simplify
 end
