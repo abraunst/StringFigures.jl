@@ -30,7 +30,7 @@ A Heart sequence describes an algorithm or procedure that
 can be applied to a string. It is represented as list of transformations
 (Functors). You can build a `HeartSequence` by using the
 special notation `heart\"<seq>\"` where `<seq>` is a list of
-Functors separated by `:`. Heart sequences can be:
+Functors separated by `#`. Heart sequences can be:
 * Used as functions on a `LinearSequence`, producing a new `LinearSequence`
 * Multiplied to other `HeartSequence`s or `Functor`s (concatenating the instructions)
 * Elevated to some power (repeating the same statements)
@@ -53,7 +53,7 @@ Base.:(^)(s::HeartSequence, k::Integer) = HeartSequence(reduce(vcat, (s.seq for 
 
 (s::HeartSequence)(p::LinearSequence) = ∘(s.seq...)(p)
 
-Base.show(io::IO, s::HeartSequence) = print(io, "heart\"", join(string.(s.seq), ":"), "\"")
+Base.show(io::IO, s::HeartSequence) = print(io, "heart\"", join(string.(s.seq), " # "), "\"")
 
 
 
@@ -68,5 +68,5 @@ function string2functor(s)
 end
 
 macro heart_str(s)
-    HeartSequence(string2functor.(split(s,":")))
+    HeartSequence(string2functor.(split(s,"#")))
 end
