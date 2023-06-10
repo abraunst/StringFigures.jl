@@ -123,34 +123,32 @@ numcrossings(p::LinearSequence) = maximum(n.idx for n in p if n.type ∈ (:U, :O
 
 function isfarsidenext(p::LinearSequence, i::Int)
     l, r = i, i
-    for k in eachindex(p)
-        pos = mod(i+k, eachindex(p))
-        if isframenode(p[pos])
-            r = pos
+    lset, rset = Set{Int}(), Set{Int}()
+    for k in 1:length(p)-1
+        n = p[i+k]
+        if isframenode(n)
+            r = i+k
             break
+        else
+            push!(rset, n.idx) 
         end
     end
-    for k in eachindex(p)
-        pos = mod(i-k, eachindex(p))
-        if isframenode(p[pos])
-            l = pos
+    for k in 1:length(p)-1
+        n = p[i-k]
+        if isframenode(n)
+            l = i-k
             break
+        else
+            push!(lset, n.idx)
         end
     end
 
-    #only 3 or more frame nodes! 
-    @assert l != i && r != i 
 
-    crossings = 0
-    for j in eachindex(p)
-        if !isframenode(p[j]) && 
-            (l ≤ j ≤ i || j ≤ i ≤ l || i ≤ l ≤ j) &&
-            (i ≤ j ≤ r || r ≤ i ≤ j || j ≤ r ≤ i)
-            crossings += 1
-        end
-    end
-    #@show l r p[l] p[r] crossings
-    (p[l].idx < p[r].idx) != isodd(crossings)
+    @assert mod(l-i, length(p)) != 0 && mod(r-i, length(p)) != 0  "only 3 or more frame nodes!"
+
+    crossings = lset ∩ rset
+    #@show crossings
+    (p[l].idx < p[r].idx) != isodd(length(crossings))
 end
 
 isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findfirst(==(n), p))
