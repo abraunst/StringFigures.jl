@@ -68,7 +68,7 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
     fbelow = f.idx < arg.idx
     # is the arg of the functor on the right of i in the seq?
     argnext = (near == isnearsidenext(p, i))
-
+    # @show argnext
     # eventual crossing in the arg node 
     if fbelow != near
         addpair(i + !argnext, U, !argnext)
@@ -104,17 +104,19 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
         append!(vnew, newcross[j])
         push!(vnew, p[j])
     end
-    canonical(LinearSequence(vnew))
+    LinearSequence(vnew)
+    #canonical(LinearSequence(vnew))
 end
 
 function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool)
     f.type == arg.type && return pick_sameside(p, over, f, arg, near)
     extra = f.idx > arg.idx ? 6 : 0
-    p = pick_sameside(p, over, SeqNode(arg.type, extra), arg, near)
-    i = findfirst(==(SeqNode(arg.type, extra)), p)
-    p.seq[i] = SeqNode(f.type, extra)
-    p = pick_sameside(p, over, f, p[i], near)
-    release(p, SeqNode(f.type, extra))
+    farg, ffun = SeqNode(arg.type, extra), SeqNode(f.type, extra)
+    p = pick_sameside(p, over, farg, arg, near)
+    p.seq[findfirst(==(farg), p)] = ffun
+    println(p)
+    p = pick_sameside(p, over, f, ffun, f.idx < extra)
+    release(p, ffun) |> simplify
 end
 
 
