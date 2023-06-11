@@ -16,50 +16,6 @@ function tutte_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
     v[:,1], v[:,2]
 end
 
-function graph(p::LinearSequence)
-    N = length(p)
-    D = Dict{SeqNode, Int}()
-    θ = [-π/2; 0.0:π/6:π/2]
-    function pos(n)
-        if n.type == :L
-            SVector(-0.5*cos(θ[n.idx]), -sin(θ[n.idx]))
-        else
-            SVector(0.5*cos(θ[n.idx]) + 3, -sin(θ[n.idx]))
-        end
-    end
-
-    idx = 0
-    vfixed = Int[]
-    pfixed = fill(SVector(0.,0.), 0)
-    vlabels = String[]
-    for n in p
-        if isframenode(n)
-            if !haskey(D, n)
-                idx +=1; D[n] = idx
-                push!(vfixed, idx)
-                push!(pfixed, pos(n))
-                push!(vlabels, string(n))
-                #@show vlabels[end] pfixed[end]
-            end
-        else
-            n1 = SeqNode(n.type == :U ? :O : :U, n.idx)
-            if !haskey(D, n1)
-                idx += 1; D[n] = idx
-                push!(vlabels, "x$(n.idx)")
-            else
-                D[n] = D[n1]
-            end
-        end
-    end
-    n = idx
-    #@show n N length(vfixed)
-    elist = [
-        [Edge(D[p[i]], n + i) for i in 1:N];
-        [Edge(n + i, D[p[i + 1]]) for i in 1:N]
-    ]
-    g = SimpleGraphFromIterator(elist)
-    g, vlabels, vfixed, pfixed, D
-end
 
 # Copied and modified from GraphLayout.jl
 function spring_layout_fixed(g::AbstractGraph;
@@ -122,6 +78,45 @@ function spring_layout_fixed(g::AbstractGraph;
     return locs_x, locs_y
 end
 
+
+function node_labels_and_fixed_positions(p::LinearSequence)
+    D = Dict{SeqNode, Int}()
+    θ = [-π/2; 0.0:π/6:π/2]
+    function pos(n)
+        if n.type == :L
+            SVector(-0.5*cos(θ[n.idx]), -sin(θ[n.idx]))
+        else
+            SVector(0.5*cos(θ[n.idx]) + 3, -sin(θ[n.idx]))
+        end
+    end
+
+    idx = 0
+    vfixed = Int[]
+    pfixed = fill(SVector(0.,0.), 0)
+    vlabels = String[]
+    for n in p
+        if isframenode(n)
+            if !haskey(D, n)
+                idx +=1; D[n] = idx
+                push!(vfixed, idx)
+                push!(pfixed, pos(n))
+                push!(vlabels, string(n))
+                #@show vlabels[end] pfixed[end]
+            end
+        else
+            n1 = SeqNode(n.type == :U ? :O : :U, n.idx)
+            if !haskey(D, n1)
+                idx += 1; D[n] = idx
+                push!(vlabels, "x$(n.idx)")
+            else
+                D[n] = D[n1]
+            end
+        end
+    end
+    idx, vlabels, vfixed, pfixed, D
+end
+
+
 """
 `plot(p::LinearSequence; rfact, k, randomize, labels, shadowc, kwd...)`
 
@@ -136,17 +131,31 @@ Plots `p` using Tutte embedding. Parallel edges are then separated by slightly t
 """
 function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, 
             labels=true, shadowc = HSLA(colorant"black", 0.4), kwd...)
-    g, vlabels, vfixed, pfixed, Didx = graph(p)
-    n = length(vlabels)
-    append!(vlabels, fill("", nv(g)-n))
+    n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
+    index(x) = Didx[x]
+ 
     locs_fixed = reduce(vcat, p' for p in pfixed)
+    underlist = [
+        [Edge(index(p[i]), n + i) for i in eachindex(p) if p[i].type == :U];
+        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type == :U]
+    ] 
+    gunder = SimpleGraphFromIterator(underlist)
+
+    overlist = [
+        [Edge(index(p[i]), n + i) for i in eachindex(p) if p[i].type ∈ (:O,:L,:R)];
+        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type ∈ (:O,:L,:R)]
+    ]
+    gover = SimpleGraphFromIterator(overlist)
+
+    g = SimpleGraphFromIterator(Iterators.flatten((underlist, overlist)))
+
+    append!(vlabels, fill("", nv(g)-n))
+
     locs_x, locs_y = tutte_embedding(g; vfixed, locs_fixed);
     if randomize
         locs_x[1:end] .+= randn.() * rfact
         locs_y[1:end] .+= randn.() * rfact
     end
-
-    index(x) = Didx[x]
     
     for i in eachindex(p)
         P1 = SVector(locs_x[index(p[i+1])], locs_y[index(p[i+1])])
@@ -166,22 +175,11 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
         # find spring embedding with small repulsive forces
         locs_x, locs_y = spring_layout_fixed(g; vfixed, locs_x, locs_y, k)
     end
+    
     pl0 = gplot(g, locs_x, locs_y;
         NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=0.8, edgestrokec=shadowc)
-    underlist = [
-        [Edge(index(p[i]), n + i) for i in eachindex(p) if p[i].type == :U];
-        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type == :U]
-    ] 
-    gunder = SimpleGraphFromIterator(underlist)
     pl1 = gplot(gunder, locs_x, locs_y; NODESIZE=0.0, EDGELINEWIDTH=0.2)
-    
-    overlist = [
-        [Edge(index(p[i]), n + i) for i in eachindex(p) if p[i].type ∈ (:O,:L,:R)];
-        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type ∈ (:O,:L,:R)]
-    ]
-    
-    gover = SimpleGraphFromIterator(overlist)
-    add_vertices!(gover, nv(g)-nv(gover))
+        
     pl2 = gplot(gover, locs_x, locs_y;
         NODELABELSIZE=0.0, NODESIZE=0.01, nodesize=[i < n ? 1.0 : 0.0 for i=1:nv(g)], 
         nodefillc=shadowc, EDGELINEWIDTH=1.0, edgestrokec=shadowc)
