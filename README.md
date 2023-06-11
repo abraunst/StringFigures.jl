@@ -26,6 +26,7 @@ This code attempts to implement the string figure calculus in Storer's book.
 - [x] `pick` (pick from below)
 - [ ] pick from above (pick from below plus loop addition)
 - [ ] pick non-standard arguments
+- [ ] multiple loops in a single Ln or Rn
 - [x] Syntactic sugar for functors
 - [x] Elementary Heart sequences
 - [ ] Several loops on one finger, non-finger framenodes, pick from non-empty framenode
