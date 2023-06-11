@@ -1,7 +1,7 @@
 using LinearAlgebra, Graphs, GraphPlot, Colors, Compose, StaticArrays
 
 
-function tutte_embedding(g; vfixed=1:0, px=Float64[], py=Float64[])
+function tutte_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
     nfixed = length(vfixed)
     A = adjacency_matrix(g)
     @assert issymmetric(A)
@@ -11,43 +11,54 @@ function tutte_embedding(g; vfixed=1:0, px=Float64[], py=Float64[])
     K[vfixed,:] .= 0
     K[vfixed,vfixed] = I(nfixed)
     c = fill(0.0, n, 2)
-    c[vfixed,1] = px
-    c[vfixed,2] = py
+    c[vfixed,:] = locs_fixed
     v = K \ c
     v[:,1], v[:,2]
 end
 
-function index(s::SeqNode)
-    if s.type == :L
-        s.idx
-    elseif s.type == :R 
-        s.idx + 5
-    elseif s.type ∈ (:U,:O)
-        s.idx + 10
-    end
-end
-
 function graph(p::LinearSequence)
-    n = depth(p)
     N = length(p)
-    elist = [
-        [Edge(index(p[i]), n + i) for i=1:N];
-        [Edge(n + i, index(p[i + 1])) for i in 1:N]
-    ]
-    function idx2label(i)
-        if i <= 5
-            "L$i"
-        elseif i <= 10
-            "R$(i-5)"
-        elseif i <= n
-            "x$(i-10)"
+    D = Dict{SeqNode, Int}()
+    θ = [-π/2; 0.0:π/6:π/2]
+    function pos(n)
+        if n.type == :L
+            SVector(-0.5*cos(θ[n.idx]), -sin(θ[n.idx]))
         else
-            ""
+            SVector(0.5*cos(θ[n.idx]) + 3, -sin(θ[n.idx]))
         end
     end
-    vlabels = idx2label.(1:N+n)
+
+    idx = 0
+    vfixed = Int[]
+    pfixed = fill(SVector(0.,0.), 0)
+    vlabels = String[]
+    for n in p
+        if isframenode(n)
+            if !haskey(D, n)
+                idx +=1; D[n] = idx
+                push!(vfixed, idx)
+                push!(pfixed, pos(n))
+                push!(vlabels, string(n))
+                #@show vlabels[end] pfixed[end]
+            end
+        else
+            n1 = SeqNode(n.type == :U ? :O : :U, n.idx)
+            if !haskey(D, n1)
+                idx += 1; D[n] = idx
+                push!(vlabels, "x$(n.idx)")
+            else
+                D[n] = D[n1]
+            end
+        end
+    end
+    n = idx
+    #@show n N length(vfixed)
+    elist = [
+        [Edge(D[p[i]], n + i) for i in 1:N];
+        [Edge(n + i, D[p[i + 1]]) for i in 1:N]
+    ]
     g = SimpleGraphFromIterator(elist)
-    g, vlabels
+    g, vlabels, vfixed, pfixed, D
 end
 
 # Copied and modified from GraphLayout.jl
@@ -124,35 +135,33 @@ Plots `p` using Tutte embedding. Parallel edges are then separated by slightly t
 * `kwd...`:            Additional options for gplot (`(;)`)
 """
 function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, 
-            labels=true, shadowc = colorant"black", kwd...)
-    g, vlabels = graph(p)
-    N = depth(p)
-    θ = [-π/2; 0.0:π/6:π/2]
-    add_vertices!.((g,), N-nv(g))
-    # fix position of frame nodes
-    vfixed = 1:10
-    px = [-0.5 .* cos.(θ); 0.5 .* cos.(θ) .+ 3]
-    py = [       -sin.(θ);       -sin.(θ)     ]
-    # find Tutte embeding
-    locs_x, locs_y = tutte_embedding(g; vfixed, px, py);
-    # move internal nodes a little bit
+            labels=true, shadowc = HSLA(colorant"black", 0.4), kwd...)
+    g, vlabels, vfixed, pfixed, Didx = graph(p)
+    n = length(vlabels)
+    append!(vlabels, fill("", nv(g)-n))
+    locs_fixed = reduce(vcat, p' for p in pfixed)
+    locs_x, locs_y = tutte_embedding(g; vfixed, locs_fixed);
     if randomize
         locs_x[1:end] .+= randn.() * rfact
         locs_y[1:end] .+= randn.() * rfact
     end
+
+    index(x) = Didx[x]
+    
     for i in eachindex(p)
         P1 = SVector(locs_x[index(p[i+1])], locs_y[index(p[i+1])])
         P2 = SVector(locs_x[index(p[i+2])], locs_y[index(p[i+2])])
         P3 = SVector(locs_x[index(p[i  ])], locs_y[index(p[i  ])])
         P4 = SVector(locs_x[index(p[i-1])], locs_y[index(p[i-1])])
-        locs_x[N + i], locs_y[N + i] = (P1 + P3)/2
+        locs_x[n + i], locs_y[n + i] = (P1 + P3)/2
         P12 = iszero(P1-P2) ? SVector(0.0,0.0) : (P1-P2)/norm(P1-P2)
         P34 = iszero(P3-P4) ? SVector(0.0,0.0) : (P3-P4)/norm(P3-P4)
         P13 = iszero(P1-P3) ? SVector(0.0,0.0) : (P1-P3)/norm(P1-P3)
         D = P12 + P34 - ((P12 + P34) ⋅ P13) * P13
-        locs_x[N + i] += D[1] * rfact 
-        locs_y[N + i] += D[2] * rfact
-    end
+        locs_x[n + i] += D[1] * rfact 
+        locs_y[n + i] += D[2] * rfact
+    end 
+
     if k > 0
         # find spring embedding with small repulsive forces
         locs_x, locs_y = spring_layout_fixed(g; vfixed, locs_x, locs_y, k)
@@ -160,26 +169,26 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
     pl0 = gplot(g, locs_x, locs_y;
         NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=0.8, edgestrokec=shadowc)
     underlist = [
-        [Edge(index(p[i]), N + i) for i in eachindex(p) if p[i].type == :U];
-        [Edge(N + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type == :U]
+        [Edge(index(p[i]), n + i) for i in eachindex(p) if p[i].type == :U];
+        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type == :U]
     ] 
     gunder = SimpleGraphFromIterator(underlist)
     pl1 = gplot(gunder, locs_x, locs_y; NODESIZE=0.0, EDGELINEWIDTH=0.2)
     
     overlist = [
-        [Edge(index(p[i]), N + i) for i in eachindex(p) if p[i].type ∈ (:O,:L,:R)];
-        [Edge(N + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type ∈ (:O,:L,:R)]
+        [Edge(index(p[i]), n + i) for i in eachindex(p) if p[i].type ∈ (:O,:L,:R)];
+        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type ∈ (:O,:L,:R)]
     ]
     
     gover = SimpleGraphFromIterator(overlist)
     add_vertices!(gover, nv(g)-nv(gover))
     pl2 = gplot(gover, locs_x, locs_y;
-        NODELABELSIZE=0.0, NODESIZE=0.01, nodesize=[i < N ? 1.0 : 0.0 for i=1:nv(g)], 
+        NODELABELSIZE=0.0, NODESIZE=0.01, nodesize=[i < n ? 1.0 : 0.0 for i=1:nv(g)], 
         nodefillc=shadowc, EDGELINEWIDTH=1.0, edgestrokec=shadowc)
 
     pl3 = gplot(gover, locs_x, locs_y;
         EDGELINEWIDTH=0.2, edgestrokec=colorant"white",
-        NODESIZE=0.005, nodesize=[i ≤ N ? 1.0 : 0.0 for i in 1:nv(g)],
+        NODESIZE=0.005, nodesize=[i ≤ n ? 1.0 : 0.0 for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
         NODELABELSIZE=2.0, nodelabel=labels ? vlabels : nothing, nodelabeldist=9, 
         nodelabelc=colorant"white", kwd...

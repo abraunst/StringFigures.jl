@@ -34,7 +34,6 @@ function LinearSequence(s::String)
 end
 
 Base.length(p) = length(p.seq)
-depth(p) = maximum((n.idx for n in p.seq if n.type ∈ (:U,:O)); init=0) + 10 
 
 function gaussish_code(p::LinearSequence)
     map(p.seq) do n
