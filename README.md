@@ -15,6 +15,7 @@ This code attempts to implement the string figure calculus in Storer's book.
 
 - [x] Elementary visualization (no crossings)
 - [x] Crossings visualization
+- [x] only plot active frame nodes
 - [ ] Better layout, better string physics?
 
 ### Calculus
