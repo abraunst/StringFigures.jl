@@ -12,18 +12,21 @@ struct PickFunctor <: Functor
     arg::SeqNode
     near::Bool
     over::Bool
+    above::Bool
 end
 
-Base.string(f::PickFunctor) = "$(string(f.fun))$(f.over ? "o" : "u")($(string(f.arg))$(f.near ? "n" : "f"))"
-latex(f::PickFunctor) = "\\$(f.over ? "over" : "under")$(f.fun.idx <= f.arg.idx ? "right" : "left")arrow{$(string(f.fun))}\\left($(string(f.arg))$(f.near ? "n" : "f")\\right)"
-
-(f::PickFunctor)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near)
+Base.string(f::PickFunctor) = "$(string(f.fun))$(f.over ? "o" : "u")$(f.above ? "a" : "")($(string(f.arg))$(f.near ? "n" : "f"))"
+function latex(f::PickFunctor)
+    arrow = "\\$(f.fun.type == f.arg.type ? "l" : "L")ong$(f.fun.idx <= f.arg.idx ? "right" : "left")arrow"
+    "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}$(f.above ? "\\downarrow" : "")\\left($(string(f.arg))$(f.near ? "n" : "f")\\right)"
+end
+(f::PickFunctor)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near, f.above)
 
 struct ReleaseFunctor <: Functor
     arg::SeqNode
 end
 
-Base.string(f::ReleaseFunctor) = "-$(string(f.arg))"
+Base.string(f::ReleaseFunctor) = "D$(string(f.arg))"
 latex(f::ReleaseFunctor) = "\\square $(string(f.arg))"
 
 (f::ReleaseFunctor)(p::LinearSequence) = release(p, f.arg)
@@ -78,10 +81,12 @@ function string2functor(s)
     !isnothing(m) && return ExtendFunctor()
     m = match(r"([\<\>])([LR]\d+)",s)
     !isnothing(m) && return TwistFunctor(SeqNode(m[2]), m[1] == ">")
-    m = match(r"-([LR]\d+)", s) 
+    m = match(r"D([LR]\d+)", s) 
     !isnothing(m) && return ReleaseFunctor(SeqNode(m[1]))
-    m = match(r"([LR]\d+)([ou])\(([LR]\d+)([nf])\)", s) 
-    !isnothing(m) && return PickFunctor(SeqNode(m[1]),SeqNode(m[3]), m[4] == "n", m[2] == "o")
+#    m = match(r"([LR]\d+)([ou])\(([LR]\d+)([nf])\)", s) 
+#    !isnothing(m) && return PickFunctor(SeqNode(m[1]),SeqNode(m[3]), m[4] == "n", m[2] == "o")
+    m = match(r"([LR]\d+)([ou])(a?)\(([LR]\d+)([nf])\)", s) 
+    !isnothing(m) && return PickFunctor(SeqNode(m[1]),SeqNode(m[4]), m[5] == "n", m[2] == "o", m[3] == "a")
     throw(ArgumentError("Could not parse $s"))
 end
 

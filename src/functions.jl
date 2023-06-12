@@ -108,7 +108,7 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
     #canonical(LinearSequence(vnew))
 end
 
-function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool)
+function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool, above::Bool=false)
     f.type == arg.type && return pick_sameside(p, over, f, arg, near)
     extra = f.idx > arg.idx ? 0 : 6 ## check
     farg, ffun = SeqNode(arg.type, extra), SeqNode(f.type, extra)
@@ -116,7 +116,11 @@ function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Boo
     p.seq[findfirst(==(farg), p)] = ffun
     #println(p)
     p = pick_sameside(p, over, f, ffun, f.idx < extra)
-    release(p, ffun) |> simplify
+    p = release(p, ffun) 
+    if above
+        p = twist(ffun, f.idx < arg.idx)
+    end
+    p |> simplify
 end
 
 function twist(p::LinearSequence, f::SeqNode, away::Bool)
