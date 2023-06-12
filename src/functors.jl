@@ -3,6 +3,7 @@ abstract type Functor end
 struct ExtendFunctor <: Functor end
 
 Base.string(f::ExtendFunctor) = "|"
+latex(f::ExtendFunctor) = "|"
 
 (f::ExtendFunctor)(p::LinearSequence) = simplify(p)
 
@@ -14,6 +15,7 @@ struct PickFunctor <: Functor
 end
 
 Base.string(f::PickFunctor) = "$(string(f.fun))$(f.over ? "o" : "u")($(string(f.arg))$(f.near ? "n" : "f"))"
+latex(f::PickFunctor) = "\\$(f.over ? "over" : "under")$(f.fun.idx <= f.arg.idx ? "right" : "left")arrow{$(string(f.fun))}\\left($(string(f.arg))$(f.near ? "n" : "f")\\right)"
 
 (f::PickFunctor)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near)
 
@@ -21,9 +23,22 @@ struct ReleaseFunctor <: Functor
     arg::SeqNode
 end
 
-Base.string(f::ReleaseFunctor) = "□$(string(f.arg))"
+Base.string(f::ReleaseFunctor) = "-$(string(f.arg))"
+latex(f::ReleaseFunctor) = "\\square $(string(f.arg))"
 
 (f::ReleaseFunctor)(p::LinearSequence) = release(p, f.arg)
+
+struct TwistFunctor <: Functor
+    arg::SeqNode
+    away::Bool
+end
+
+Base.string(f::TwistFunctor) = f.away ? ">$(string(f.arg))" : "<$(string(f.arg))"
+latex(f::TwistFunctor) = string(f)
+
+(f::TwistFunctor)(p::LinearSequence) = twist(p, f.arg, f.away)
+
+Base.show(io::IO, ::MIME"text/latex", f::Functor) = print(io, "\$", latex(f), "\$")
 
 """
 A Heart sequence describes an algorithm or procedure that
@@ -55,12 +70,15 @@ Base.:(^)(s::HeartSequence, k::Integer) = HeartSequence(reduce(vcat, (s.seq for 
 
 Base.show(io::IO, s::HeartSequence) = print(io, "heart\"", join(string.(s.seq), " # "), "\"")
 
+Base.show(io::IO, ::MIME"text/latex", s::HeartSequence) = print(io, "\$", join(latex.(s.seq), " \\# "), "\$")
 
 
 function string2functor(s)
     m = match(r"\|", s)
     !isnothing(m) && return ExtendFunctor()
-    m = match(r"□([LR]\d+)", s) 
+    m = match(r"([\<\>])([LR]\d+)",s)
+    !isnothing(m) && return TwistFunctor(SeqNode(m[2]), m[1] == ">")
+    m = match(r"-([LR]\d+)", s) 
     !isnothing(m) && return ReleaseFunctor(SeqNode(m[1]))
     m = match(r"([LR]\d+)([ou])\(([LR]\d+)([nf])\)", s) 
     !isnothing(m) && return PickFunctor(SeqNode(m[1]),SeqNode(m[3]), m[4] == "n", m[2] == "o")
@@ -70,3 +88,5 @@ end
 macro heart_str(s)
     HeartSequence(string2functor.(split(s,"#")))
 end
+
+

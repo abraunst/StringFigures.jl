@@ -6,7 +6,7 @@ include("functions.jl")
 include("functors.jl")
 
 export LinearSequence, SeqNode,
-        @seq_str, @node_str, @heart_str, plot,
+        @seq_str, @node_str, @heart_str, plot, latex,
         isframenode, isfarsidenext, isnearsidenext, iscanonical,
         canonical, release, simplify, pick, twist,
         Functor, SeqNode, HeartSequence
