@@ -119,6 +119,18 @@ function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Boo
     release(p, ffun) |> simplify
 end
 
+function twist(p::LinearSequence, f::SeqNode, away::Bool)
+    i = findfirst(==(f), p)
+    n = maximum(x->x.idx, Iterators.filter(!isframenode, p); init=0)
+    U, O = away == isnearsidenext(p, f) ? (:U, :O) : (:O, :U)
+    canonical(@views LinearSequence([
+        p.seq[1:i-1]; 
+        SeqNode(U, n+1); 
+        f; 
+        SeqNode(O, n+1); 
+        p.seq[i+1:end]]))
+end
+
 
 function Base.:(==)(p::LinearSequence, q::LinearSequence)
     (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)
