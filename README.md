@@ -16,6 +16,7 @@ This code attempts to implement the string figure calculus in Storer's book.
 - [x] Elementary visualization (no crossings)
 - [x] Crossings visualization
 - [x] only plot active frame nodes
+- [ ] multi-loop framenodes
 - [ ] Better layout, better string physics?
 
 ### Calculus
@@ -26,7 +27,6 @@ This code attempts to implement the string figure calculus in Storer's book.
 - [x] `pick` (pick from below)
 - [ ] pick from above (pick from below plus loop addition)
 - [ ] pick non-standard arguments
-- [ ] multiple loops in a single Ln or Rn
+- [ ] multiple loops in a single Ln or Rn, on-finger framenodes, pick from non-empty framenode
 - [x] Syntactic sugar for functors
 - [x] Elementary Heart sequences
-- [ ] Several loops on one finger, non-finger framenodes, pick from non-empty framenode
