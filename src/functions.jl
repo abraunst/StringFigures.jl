@@ -118,7 +118,7 @@ function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Boo
     p = pick_sameside(p, over, f, ffun, f.idx < extra)
     p = release(p, ffun) 
     if above
-        p = twist(ffun, f.idx < arg.idx)
+        p = twist(p, f, f.idx < arg.idx)
     end
     p |> simplify
 end
