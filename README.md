@@ -30,3 +30,4 @@ This code attempts to implement the string figure calculus in Storer's book.
 - [ ] multiple loops in a single Ln or Rn, on-finger framenodes, pick from non-empty framenode
 - [x] Syntactic sugar for functors
 - [x] Elementary Heart sequences
+- [x] LaTeX output of Heart sequences
