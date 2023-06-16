@@ -25,9 +25,9 @@ Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 
 - [x] `release` move
 - [x] basic: `simplify` (lemmas 2a and 2b in Storer's book)
-- [x] `pick` (pick from below)
+- [x] `pick` (from below)
+- [X] `pick` (from above)
 - [ ] advanced: $\phi_3$ moves and heuristics to decide when to apply it
-- [ ] pick from above (pick from below plus loop addition)
 - [ ] pick non-standard arguments
 - [ ] multiple loops in a single Ln or Rn, on-finger framenodes, pick from non-empty framenode
 - [x] Syntactic sugar for functors
