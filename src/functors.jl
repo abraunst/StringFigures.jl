@@ -69,7 +69,7 @@ Base.:(^)(s::Functor, k::Integer) = HeartSequence(fill(s,k))
 
 Base.:(^)(s::HeartSequence, k::Integer) = HeartSequence(reduce(vcat, (s.seq for i=1:k)))
 
-(s::HeartSequence)(p::LinearSequence) = ∘(s.seq...)(p)
+(s::HeartSequence)(p::LinearSequence) = reduce((x,h)->h(x), s.seq; init = p)
 
 Base.show(io::IO, s::HeartSequence) = print(io, "heart\"", join(string.(s.seq), " # "), "\"")
 
