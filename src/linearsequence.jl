@@ -118,6 +118,8 @@ end
 
 isframenode(n::SeqNode) = n.type ∈ (:L, :R)
 
+findframenode(f,p) = findfirst(==(f), p)
+
 numcrossings(p::LinearSequence) = maximum(n.idx for n in p if n.type ∈ (:U, :O); init = 0)
 
 function isfarsidenext(p::LinearSequence, i::Int)
@@ -150,7 +152,7 @@ function isfarsidenext(p::LinearSequence, i::Int)
     (p[l].idx < p[r].idx) != isodd(length(crossings))
 end
 
-isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findfirst(==(n), p))
+isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findframenode(n, p))
 
 isnearsidenext(p::LinearSequence, n::Union{Int, SeqNode}) = !isfarsidenext(p, n)
 

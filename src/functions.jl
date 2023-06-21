@@ -46,14 +46,15 @@ function simplify(p::LinearSequence)
     return canonical(p)
 end
 
+
 function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool)
     @assert f.type == arg.type # only on the same side
     isframenode(arg) || throw(ArgumentError("Only frame nodes can identify sectors"))
     isframenode(f) || throw(ArgumentError("Only frame nodes can be functors"))
     nold = numcrossings(p) 
     n = nold + 1
-    @assert findfirst(==(f), p) === nothing
-    i = findfirst(==(arg), p) 
+    @assert findframenode(f, p) === nothing
+    i = findframenode(arg, p) 
     !isnothing(i) || throw(ArgumentError("Non existing argument"))
     newcross = [SeqNode[] for _ in eachindex(p)]
     function addpair(x, U, b)
@@ -113,7 +114,7 @@ function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Boo
     extra = f.idx > arg.idx ? 0 : 6 ## check
     farg, ffun = SeqNode(arg.type, extra), SeqNode(f.type, extra)
     p = pick_sameside(p, over, farg, arg, near)
-    p.seq[findfirst(==(farg), p)] = ffun
+    p.seq[findframenode(farg, p)] = ffun
     #println(p)
     p = pick_sameside(p, over, f, ffun, f.idx < extra)
     p = release(p, ffun) 
@@ -124,7 +125,7 @@ function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Boo
 end
 
 function twist(p::LinearSequence, f::SeqNode, away::Bool)
-    i = findfirst(==(f), p)
+    i = findframenode(f, p)
     n = maximum(x->x.idx, Iterators.filter(!isframenode, p); init=0)
     U, O = away == isnearsidenext(p, f) ? (:U, :O) : (:O, :U)
     canonical(@views LinearSequence([
