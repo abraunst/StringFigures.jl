@@ -29,7 +29,7 @@ Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 - [X] `pick` (from above)
 - [ ] advanced: $\phi_3$ moves and heuristics to decide when to apply it
 - [ ] pick non-standard arguments
-- [ ] multiple loops in a single Ln or Rn, on-finger framenodes, pick from non-empty framenode
+- [ ] multiple loops in a single Ln or Rn, non-finger framenodes, pick from non-empty framenode
 - [x] Syntactic sugar for functors
 - [x] Elementary Heart sequences
 - [x] LaTeX output of Heart sequences
