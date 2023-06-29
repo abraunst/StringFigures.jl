@@ -33,7 +33,7 @@ function LinearSequence(s::String)
     LinearSequence(SeqNode.(split(s, ":")))
 end
 
-Base.length(p) = length(p.seq)
+Base.length(p::LinearSequence) = length(p.seq)
 
 function gaussish_code(p::LinearSequence)
     map(p.seq) do n

@@ -23,13 +23,14 @@ Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 
 ### Calculus
 
-- [x] `release` move
+- [x] `release` passage
 - [x] basic: `simplify` (lemmas 2a and 2b in Storer's book)
 - [x] `pick` (from below)
 - [X] `pick` (from above)
-- [ ] advanced: $\phi_3$ moves and heuristics to decide when to apply it
+- [ ] advanced: $\phi_3$ passages and heuristics to decide when to apply it
 - [ ] pick non-standard arguments
-- [ ] multiple loops in a single Ln or Rn, non-finger framenodes, pick from non-empty framenode
-- [x] Syntactic sugar for functors
-- [x] Elementary Heart sequences
-- [x] LaTeX output of Heart sequences
+- [ ] multiple loops in a single Ln or Rn, non-finger functors, pick from non-empty framenode
+- [x] Syntactic sugar for passages
+- [x] Elementary `StringCalculus`s
+- [x] LaTeX output of `StringCalculus`
+- [x] `StringProcedures`
