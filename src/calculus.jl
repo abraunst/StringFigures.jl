@@ -59,3 +59,13 @@ function plot(p::StringProcedure)
         display(plot(l))
     end
 end
+
+Base.getindex(p::StringProcedure, i) = StringCalculus(p.calculus.seq[1:i-1])(p.initial)
+
+Base.last(p::StringProcedure) = p.calculus(p.initial)
+
+Base.lastindex(p::StringProcedure) = length(p)
+
+Base.firstindex(p::StringProcedure) = 1
+
+Base.keys(p::StringProcedure) = firstindex(p):lastindex(p)
