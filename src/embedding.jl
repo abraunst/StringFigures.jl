@@ -81,8 +81,8 @@ end
 
 function node_labels_and_fixed_positions(p::LinearSequence)
     D = Dict{SeqNode, Int}()
-    θ = [-π/2; 0.0:π/6:π/2]
     function pos(n)
+        θ = [-π/2; 0.0:π/6:π/2]
         if n.type == :L
             SVector(-0.5*cos(θ[n.idx]), -sin(θ[n.idx]))
         else
@@ -123,6 +123,7 @@ end
 Plots `p` using Tutte embedding. Parallel edges are then separated by slightly translating them perpendicularly to the segment joining the two vertices.
 
 * `k::Float64`:        Set `k>0` to relayout using a very small repulsive force (`0.0`).
+* `fact::Float64`:     Multiplicative factor for edge width
 * `rfact::Float64`:    Distance between parallel edges (`0.02`)
 * `randomize::Bool`:   Slightly randomize positions (`false`) 
 * `labels::Bool`:      Add labels to the plot (`true`)
@@ -130,7 +131,7 @@ Plots `p` using Tutte embedding. Parallel edges are then separated by slightly t
 * `kwd...`:            Additional options for gplot (`(;)`)
 """
 function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, 
-            labels=true, shadowc = HSLA(colorant"black", 0.4), kwd...)
+            labels=true, shadowc = HSLA(colorant"black", 0.4), fact=1.0, kwd...)
     n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
     index(x) = Didx[x]
  
@@ -177,15 +178,15 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
     end
     
     pl0 = gplot(g, locs_x, locs_y;
-        NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=0.8, edgestrokec=shadowc)
-    pl1 = gplot(gunder, locs_x, locs_y; NODESIZE=0.0, EDGELINEWIDTH=0.2)
+        NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=0.8 * fact, edgestrokec=shadowc)
+    pl1 = gplot(gunder, locs_x, locs_y; NODESIZE=0.0, EDGELINEWIDTH=0.2*fact)
         
     pl2 = gplot(gover, locs_x, locs_y;
         NODELABELSIZE=0.0, NODESIZE=0.01, nodesize=[i < n ? 1.0 : 0.0 for i=1:nv(g)], 
-        nodefillc=shadowc, EDGELINEWIDTH=1.0, edgestrokec=shadowc)
+        nodefillc=shadowc, EDGELINEWIDTH=1.0*fact, edgestrokec=shadowc)
 
     pl3 = gplot(gover, locs_x, locs_y;
-        EDGELINEWIDTH=0.2, edgestrokec=colorant"white",
+        EDGELINEWIDTH=0.2*fact, edgestrokec=colorant"white",
         NODESIZE=0.005, nodesize=[i ≤ n ? 1.0 : 0.0 for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
         NODELABELSIZE=2.0, nodelabel=labels ? vlabels : nothing, nodelabeldist=9, 
