@@ -149,7 +149,7 @@ isnearsidenext(p::LinearSequence, n::Union{Int, SeqNode}) = !isfarsidenext(p, n)
 macro seq_str(s)
     # allow some fuzziness to be able to easily copy-paste 
     # from Storer's OCR'd book :)
-    s = replace(s, " " => "", "{" => "(", "l" => "1", ";" => ":", 
+    s = replace(s, "\n"=>"", " " => "", "{" => "(", "l" => "1", ";" => ":", 
         "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7")
     parse_whole(linseq, s)
 end
