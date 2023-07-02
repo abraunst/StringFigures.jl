@@ -21,7 +21,9 @@ noncanonical = seq"L1:x1(U):L2:x3(U):x1(O):R2:x3(O):R1"
 
     o1s = [o1, start, orient, both]
     # although only one is canonical, they are considered equal
-    @test allequal(o1s)
+    @test o1 == start
+    @test o1 == orient
+    @test o1 == both
     # converting to canonical form maintains equality
     @test allequal(@. o1s |> canonical)
     # in canonical forms, same figures have same sequence of frame nodes
