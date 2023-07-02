@@ -35,8 +35,8 @@ test StringFigures
 
 ### Linear sequences
 
-- [x] Structure for Linear Sequences
-- [x] Canonical Form
+- [x] Structure for Linear Sequences (Storer, p006)
+- [x] Canonical Form, as per Convention Seq. 1 and Seq. 2 (Storer, p006)
 
 ### Visualization
 
