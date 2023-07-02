@@ -12,7 +12,7 @@ struct SeqNode
 end
 
 @rule fnode = r"[LR]" & r"\d+" > (t,d) -> SeqNode(Symbol(t), parse(Int, d))
-@rule xnode = "x" & r"\d+" & "(" & r"[0U]" & ")" > (_,d,t) -> SeqNode(Symbol(t == "U" ? :U : :O), parse(Int, d))
+@rule xnode = "x" & r"\d+" & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> SeqNode(t == "U" ? :U : :O, parse(Int, d))
 @rule snode = fnode, xnode
 @rule snodec = snode & ":" > (x,_) -> x
 @rule linseq = snodec[*] & snode > (x,y) -> LinearSequence(push!(copy(x),y))
