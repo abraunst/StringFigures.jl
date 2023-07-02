@@ -48,9 +48,16 @@ test StringFigures
 
 ### Calculus
 
-- [x] `release` passage
-- [x] basic: `simplify` (lemmas 2a and 2b in Storer's book)
-- [x] `pick` (from below)
+- [x] `release`
+  - introduced as the $\square$ functor (Storer, p023)
+  - calculus is described in p362
+- [x] `simplify` <!-- extend (hands to absorb slack), see p003 -->
+  - introduced as the $\mid$ functor (Storer, p003)
+  - calculus is described as Lemma 2 A. and B. (Storer, p011)
+- [x] `pick` same hand (Storer, p015), opposite hand (Storer, p020)
+  - from below, e.g. $\overset{\longleftarrow}{L3}\left(\underline{L5n}\right)$
+    - i.e. pass $L3$ (away) **over** all intermediate strings and pick up $L5n$ from below
+    - this is encoded as `"L3o(L5n)"`
 - [X] `pick` (from above)
 - [ ] advanced: $\phi_3$ passages and heuristics to decide when to apply it
 - [ ] pick non-standard arguments
