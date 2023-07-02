@@ -37,7 +37,7 @@ Base.show(io::IO, s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), 
 
 Base.show(io::IO, ::MIME"text/latex", s::StringCalculus) = print(io, latex(s))
 
-function string(s::StringCalculus)
+function Base.string(s::StringCalculus)
     map(eachindex(s.seq)) do i
         o = string(s.seq[i])
         s.seq[i] isa ExtendPassage && return o
