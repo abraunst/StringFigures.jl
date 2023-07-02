@@ -4,6 +4,8 @@ on:
     branches:
       - main
     tags: ['*']
+    paths-ignore:
+      - '*.md'
   pull_request:
 concurrency:
   # Skip intermediate builds: always.
