@@ -5,7 +5,7 @@ A `StringCalculus` describes an algorithm or procedure that
 can be applied to a string. It is represented as list of transformations
 (Passages). You can build a `StringCalculus` by using the
 special notation `calc\"<seq>\"` where `<seq>` is a list of
-Passages, possibly separated by `#`. Heart sequences can be:
+Passages, possibly separated by `#`. A `StringCalculus` can be:
 * Used as functions on a `LinearSequence`, producing a new `LinearSequence`
 * Multiplied to other `StringCalculus`s or `Passage`s (concatenating the instructions)
 * Elevated to some power (repeating the same statements)
