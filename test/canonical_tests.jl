@@ -1,5 +1,7 @@
 """
-Reference to canonical forms on Storer p006
+Test linear sequences in canonical/noncanonical forms.
+
+(Storer, p006)
 """
 
 # canonical form of O1 opening
