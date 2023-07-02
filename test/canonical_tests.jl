@@ -18,6 +18,9 @@ noncanonical = seq"L1:x1(U):L2:x3(U):x1(O):R2:x3(O):R1"
 @testset "convert to canonical" begin
     # get inner sequence of a LinearSequence
     seq(s::LinearSequence) = s.seq
+    # allequal
+    # copied from https://github.com/JuliaLang/julia/blob/147bdf428cd14c979202678127d1618e425912d6/base/set.jl#L505-L532
+    allequal(v::Vector) = all(v |> first |> isequal, v)
 
     o1s = [o1, start, orient, both]
     # although only one is canonical, they are considered equal
