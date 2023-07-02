@@ -1,9 +1,11 @@
+using PEG
+
 """
 A `StringCalculus` describes an algorithm or procedure that
 can be applied to a string. It is represented as list of transformations
 (Passages). You can build a `StringCalculus` by using the
-special notation `proc\"<seq>\"` where `<seq>` is a list of
-Passages separated by `#`. Heart sequences can be:
+special notation `calc\"<seq>\"` where `<seq>` is a list of
+Passages, possibly separated by `#`. A `StringCalculus` can be:
 * Used as functions on a `LinearSequence`, producing a new `LinearSequence`
 * Multiplied to other `StringCalculus`s or `Passage`s (concatenating the instructions)
 * Elevated to some power (repeating the same statements)
@@ -11,6 +13,9 @@ Passages separated by `#`. Heart sequences can be:
 struct StringCalculus 
     seq::Vector{Passage}
 end
+
+@rule passages = (passage & r"#?"p) > (x,_) -> x
+@rule calculus = r""p & passages[*]  > (_,x) -> StringCalculus(x)
 
 Base.length(c::StringCalculus) = length(c.seq)
 
@@ -32,10 +37,27 @@ Base.show(io::IO, s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), 
 
 Base.show(io::IO, ::MIME"text/latex", s::StringCalculus) = print(io, latex(s))
 
-latex(s::StringCalculus) =  "\$" * join(latex.(s.seq), " \\# ") * "\$"
+function string(s::StringCalculus)
+    map(eachindex(s.seq)) do i
+        o = string(s.seq[i])
+        s.seq[i] isa ExtendPassage && return o
+        i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage && return o
+        return o * "#"
+    end |> join
+end
+
+function latex(s::StringCalculus)
+    l = map(eachindex(s.seq)) do i
+        o = latex(s.seq[i])
+        s.seq[i] isa ExtendPassage && return o
+        i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage && return o
+        o * "\\#"
+    end
+    "\$$(join(l))\$"
+end
 
 macro calc_str(s)
-    StringCalculus(string2passage.(split(s,"#")))
+    parse_whole(calculus, s)
 end
 
 

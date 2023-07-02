@@ -1,3 +1,5 @@
+using PEG
+
 struct SeqNode
     type::Symbol
     idx::Int
@@ -9,28 +11,16 @@ struct SeqNode
     end
 end
 
-function SeqNode(s)
-    m = match(r"L(\d+)",s)
-    !isnothing(m) && return SeqNode(:L, parse(Int, m[1]))
-    m = match(r"R(\d+)",s)
-    !isnothing(m) && return SeqNode(:R, parse(Int, m[1]))
-    m = match(r"x(\d+)\(([0U])[\)J]",s)
-    !isnothing(m) && return SeqNode(m[2] == "U" ? :U : :O, parse(Int, m[1]))
-    @assert false "Impossible to parse $s"
-end
+@rule fnode = r"[LR]" & r"\d+" > (t,d) -> SeqNode(Symbol(t), parse(Int, d))
+@rule xnode = "x" & r"\d+" & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> SeqNode(t == "U" ? :U : :O, parse(Int, d))
+@rule snode = fnode, xnode
+@rule snodec = snode & ":" > (x,_) -> x
+@rule linseq = snodec[*] & snode > (x,y) -> LinearSequence(push!(copy(x),y))
 
 Base.:(<)(s::SeqNode, t::SeqNode) = s.idx < t.idx
 
 struct LinearSequence
     seq::Vector{SeqNode}
-end
-
-function LinearSequence(s::String)
-    # allow some fuzziness to be able to easily copy-paste 
-    # from Storer's OCR'd book :)
-    s = replace(s, " " => "", "{" => "(", "l" => "1", ";" => ":", 
-        "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7")
-    LinearSequence(SeqNode.(split(s, ":")))
 end
 
 Base.length(p::LinearSequence) = length(p.seq)
@@ -157,11 +147,15 @@ isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findframenode(n,
 isnearsidenext(p::LinearSequence, n::Union{Int, SeqNode}) = !isfarsidenext(p, n)
 
 macro seq_str(s)
-    LinearSequence(s)
+    # allow some fuzziness to be able to easily copy-paste 
+    # from Storer's OCR'd book :)
+    s = replace(s, "\n"=>"", " " => "", "{" => "(", "l" => "1", ";" => ":", 
+        "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7")
+    parse_whole(linseq, s)
 end
 
 macro node_str(s)
-    SeqNode(s)
+    parse_whole(snode, s)
 end
 
 Base.iterate(p::LinearSequence) = iterate(p.seq)
