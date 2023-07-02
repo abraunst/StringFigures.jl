@@ -28,8 +28,12 @@ noncanonical = seq"L1:x1(U):L2:x3(U):x1(O):R2:x3(O):R1"
     @test allequal(@. o1s |> canonical |> seq)
 
     openings = [o1s; noncanonical]
+    canonicals = @. openings |> canonical
     # canonical forms are indeed, canonical
-    @test all(@. openings |> canonical |> iscanonical)
+    @test all(@. canonicals |> iscanonical)
+
+    # converting to canonical is idempotent
+    @test (@. canonicals |> seq) == (@. canonicals |> canonical |> seq)
 end
 
 @testset "iscanonical" begin
