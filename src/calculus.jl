@@ -1,3 +1,5 @@
+using PEG
+
 """
 A `StringCalculus` describes an algorithm or procedure that
 can be applied to a string. It is represented as list of transformations
@@ -11,6 +13,9 @@ Passages separated by `#`. Heart sequences can be:
 struct StringCalculus 
     seq::Vector{Passage}
 end
+
+@rule passages = (passage & r"#?"p) > (x,_) -> x
+@rule calculus = r""p & passages[*]  > (_,x) -> StringCalculus(x)
 
 Base.length(c::StringCalculus) = length(c.seq)
 
@@ -32,10 +37,19 @@ Base.show(io::IO, s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), 
 
 Base.show(io::IO, ::MIME"text/latex", s::StringCalculus) = print(io, latex(s))
 
-latex(s::StringCalculus) =  "\$" * join(latex.(s.seq), " \\# ") * "\$"
+function latex(s::StringCalculus)
+    o = "\$";
+    for i in eachindex(s.seq)
+        o *= latex(s.seq[i])
+        s.seq[i] isa ExtendPassage && continue
+        i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage && continue
+        o *= "\\#"
+    end
+    o *= "\$"
+end
 
 macro calc_str(s)
-    StringCalculus(string2passage.(split(s,"#")))
+    parse_whole(calculus, s)
 end
 
 

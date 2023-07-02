@@ -1,12 +1,48 @@
+using PEG
+
+
+"""
+The `Passage` type represents one passage or move in a string figure construction` 
+"""
 abstract type Passage end
 
+@rule passage = extend_p, twist_p, release_p, pick_p
+
+Base.show(io::IO, ::MIME"text/latex", f::Passage) = print(io, "\$", latex(f), "\$")
+
+macro pass_str(s)
+    parse_whole(passage, s)
+end
+
+"""
+An `ExtendPassage` represents the extension of the string in order to make it taut. 
+It has no arguments. Represented in Storer with the symbol "|".
+"""
 struct ExtendPassage <: Passage end
 
+@rule extend_p = "|" > _ -> ExtendPassage()
+
 Base.string(f::ExtendPassage) = "|"
+
 latex(f::ExtendPassage) = "|"
 
 (f::ExtendPassage)(p::LinearSequence) = simplify(p)
 
+"""
+A `PickPassage` represents the action of picking a string with a given functor. 
+Its arguments are:
+- `fun::SeqNode`  : the functor (i.e. the picking finger)
+- `arg::SeqNode`  : the argument (i.e. the finger holding the section of string being picked)
+- `near::Bool`    : is it the *near* portion of the string? 
+- `over::Bool`    : does the finger travels above all other string in order to reach it?
+- `above::Bool`   : does it pick the string from above?
+
+In Storer, it is represented by `F(A)` in which `F`` is the functor, decorated with an 
+arrow on top if the finger travels over other strings (the `over` flag) and a downward
+pointing arrow "↓" if it picks the argument from above (the `above` flag). The argument
+`A` represents a framenode, appended with the letter `n` or `f` if the string picked is
+one `near` the executer or not. 
+"""
 struct PickPassage <: Passage
     fun::SeqNode
     arg::SeqNode
@@ -15,45 +51,49 @@ struct PickPassage <: Passage
     above::Bool
 end
 
+@rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"f|n"p & ")" > (f,ou,a,_,g,fn,_) -> PickPassage(f,g,fn=="n",ou=="o",a=="a")
+
 Base.string(f::PickPassage) = "$(string(f.fun))$(f.over ? "o" : "u")$(f.above ? "a" : "")($(string(f.arg))$(f.near ? "n" : "f"))"
+
 function latex(f::PickPassage)
     arrow = "\\$(f.fun.type == f.arg.type ? "l" : "L")ong$(f.fun.idx <= f.arg.idx ? "right" : "left")arrow"
     "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}$(f.above ? "\\downarrow" : "")\\left($(string(f.arg))$(f.near ? "n" : "f")\\right)"
 end
+
 (f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near, f.above)
 
+
+"""
+A `ReleasePassage` represents the release of one loop. It is denoted by the "□" symbol in 
+Storer, which we represent in ASCII with "D" (for delete) 
+"""
 struct ReleasePassage <: Passage
     arg::SeqNode
 end
+
+@rule release_p = "D" & fnode > (_,f) -> ReleasePassage(f)
 
 Base.string(f::ReleasePassage) = "D$(string(f.arg))"
 latex(f::ReleasePassage) = "\\square $(string(f.arg))"
 
 (f::ReleasePassage)(p::LinearSequence) = release(p, f.arg)
 
+
+"""
+A `TwistPassage` represents the invertion of one loop
+"""
 struct TwistPassage <: Passage
     arg::SeqNode
     away::Bool
 end
 
+@rule twist_p = r"[<>]" & fnode > (t,f) -> TwistPassage(f, t == ">")
+
 Base.string(f::TwistPassage) = f.away ? ">$(string(f.arg))" : "<$(string(f.arg))"
+
 latex(f::TwistPassage) = string(f)
 
 (f::TwistPassage)(p::LinearSequence) = twist(p, f.arg, f.away)
 
-Base.show(io::IO, ::MIME"text/latex", f::Passage) = print(io, "\$", latex(f), "\$")
 
-function string2passage(s)
-    m = match(r"\|", s)
-    !isnothing(m) && return ExtendPassage()
-    m = match(r"([\<\>])([LR]\d+)",s)
-    !isnothing(m) && return TwistPassage(SeqNode(m[2]), m[1] == ">")
-    m = match(r"D([LR]\d+)", s) 
-    !isnothing(m) && return ReleasePassage(SeqNode(m[1]))
-#    m = match(r"([LR]\d+)([ou])\(([LR]\d+)([nf])\)", s) 
-#    !isnothing(m) && return PickPassage(SeqNode(m[1]),SeqNode(m[3]), m[4] == "n", m[2] == "o")
-    m = match(r"([LR]\d+)([ou])(a?)\(([LR]\d+)([nf])\)", s) 
-    !isnothing(m) && return PickPassage(SeqNode(m[1]),SeqNode(m[4]), m[5] == "n", m[2] == "o", m[3] == "a")
-    throw(ArgumentError("Could not parse $s"))
-end
 
