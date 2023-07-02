@@ -5,7 +5,7 @@ using Test
     # Example in Fig. 10, pag 12
 
     @testset "canonical" begin
-        include("canonical.jl")
+        include("canonical_tests.jl")
     end
 
     @test SeqNode(:L,2) == node"L2"
