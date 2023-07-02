@@ -29,8 +29,8 @@ noncanonical = seq"L1:x1(U):L2:x3(U):x1(O):R2:x3(O):R1"
     # in canonical forms, same figures have same sequence of frame nodes
     @test allequal(@. o1s |> canonical |> seq)
 
-    openings = [o1s; noncanonical]
-    canonicals = @. openings |> canonical
+    # some linear sequences converted to canonical
+    canonicals = @. [o1s; noncanonical] |> canonical
     # canonical forms are indeed, canonical
     @test all(@. canonicals |> iscanonical)
 
