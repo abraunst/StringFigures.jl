@@ -10,7 +10,7 @@ using Test
         include("parse_tests.jl")
     end
 
-    @testset "functor" begin
-        include("functor_tests.jl")
+    @testset "passage" begin
+        include("passage_tests.jl")
     end
 end

@@ -1,5 +1,5 @@
 """
-Test functors
+Test passages
 """
 
 @testset "extend" begin
