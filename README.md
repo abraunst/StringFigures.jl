@@ -35,33 +35,35 @@ test StringFigures
 
 ### Linear sequences
 
-- [x] Structure for Linear Sequences (Storer, p006)
-- [x] Canonical Form, as per Convention Seq. 1 and Seq. 2 (Storer, p006)
+- [x] Structure for linear sequences (Storer, p006)
+- [x] Canonical form
+  - Conventions seq. 1 and seq. 2 (Storer, p006)
+  - Convert to canonical form (Storer, p357-359)
 
 ### Visualization
 
 - [x] Elementary visualization (no crossings)
 - [x] Crossings visualization
-- [x] only plot active frame nodes
-- [ ] multi-loop framenodes
+- [x] Only plot active frame nodes
+- [ ] Multi-loop framenodes
 - [ ] Better layout, better string physics?
 
 ### Calculus
 
-- [x] `release`
-  - introduced as the $\square$ functor (Storer, p023)
-  - calculus is described in p362
-- [x] `simplify` <!-- extend (hands to absorb slack), see p003 -->
-  - introduced as the $\mid$ functor (Storer, p003)
-  - calculus is described as Lemma 2 A. and B. (Storer, p011)
-- [x] `pick` same hand (Storer, p015), opposite hand (Storer, p020)
-  - from below, e.g. $\overset{\longleftarrow}{L3}\left(\underline{L5n}\right)$
+- [x] Release, i.e. the $\square$ operation (Storer, p023)
+  - Calculus (Storer, p362)
+- [x] Extend, i.e. the $\mid$ operation (Storer, p003)
+  - Lemma 2 A. and B. (Storer, p011) on extension cancellation
+- [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below
+    - e.g. $\overset{\longleftarrow}{L3}\left(\underline{L5n}\right)$
     - i.e. pass $L3$ (away) **over** all intermediate strings and pick up $L5n$ from below
-    - this is encoded as `"L3o(L5n)"`
-- [X] `pick` (from above)
-- [ ] advanced: $\phi_3$ passages and heuristics to decide when to apply it
-- [ ] pick non-standard arguments
-- [ ] multiple loops in a single Ln or Rn, non-finger functors, pick from non-empty framenode
+    - this is encoded as `L3o(L5n)`
+- [X] Pick from above
+- [ ] $\phi_3$ passages and heuristics to decide when to apply it
+- [ ] Pick with non-standard arguments
+- [ ] Multiple loops in a single Ln or Rn
+- [ ] Non-finger functors
+- [ ] Pick from non-empty framenode
 - [x] Syntactic sugar for passages
 - [x] Elementary `StringCalculus`s
 - [x] LaTeX output of `StringCalculus`
