@@ -52,22 +52,19 @@ function Base.show(io::IO, p::LinearSequence)
 end
 
 function iscanonical(p::LinearSequence)
-    # find first active left finger
-    L, Lpos = 11, 0
-    for (i,n) in pairs(p)
-        if n.type == :L && n.idx < L
-            L, Lpos = n.idx, i
-        end
-    end
-    isnearsidenext(p, p[Lpos]) && return false
+    p[begin].type == :L || return false
+    L = p[begin].idx
+    isnearsidenext(p, p[begin]) && return false
     last = 0
-    for j in (eachindex(p) .+ (Lpos - 1))
+    for j in 2:lastindex(p)
         if p[j].type ∈ (:O, :U)
             if p[j].idx > last + 1 
                 return false
             elseif p[j].idx > last
                 last += 1
             end
+        elseif p[j].type == :L
+            p[j].idx < L && return false
         end
     end
     return true
