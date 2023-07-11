@@ -30,16 +30,16 @@ end
 
 @testset "pick" begin
     fig155apick = seq"x9(U):x10(U):L2:x8(U):x7(U):x1(0):R3:x2(0):x3(0):x5(0):x7(0):x9(0):L1:x10(0):x8(0):x6(0):x4(0):L5:R5:x2(U):x3(U):x4(U):L3:x6(U):x5(U):x1(U):R2"
-    pick(fig155a, true, node"L1", node"L5", true) == fig155apick
+    @test pick(fig155a, true, node"L1", node"L5", true) == fig155apick
 end
 
 @testset "release" begin
     p = seq"Ll:x1(0):R2:x2(0):L5:R5:x2(U):L2:xl(U):x3(U):Rl:x3(0)"
-    release(p, node"L1") == seq"L2:x1(U):R5:L5:x1(0):R2:x2(0):x3(0):R1:x3(U):x2(U)"
+    @test release(p, node"L1") == seq"L2:x1(U):R5:L5:x1(0):R2:x2(0):x3(0):R1:x3(U):x2(U)"
 end
 
 @testset "twist" begin
-    twist(O1, node"R1", true) == seq"L1:L5:R5:x1(U):R1:x1(0)"
+    @test twist(O1, node"R1", true) == seq"L1:L5:R5:x1(U):R1:x1(0)"
 end
 
 @testset "calc" begin
