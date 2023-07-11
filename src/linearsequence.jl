@@ -148,11 +148,19 @@ macro seq_str(s)
     # from Storer's OCR'd book :)
     s = replace(s, "\n"=>"", " " => "", "{" => "(", "l" => "1", ";" => ":", 
         "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7")
-    parse_whole(linseq, s)
+    try 
+        parse_whole(linseq, s)
+    catch e
+        println(e.msg)
+    end
 end
 
 macro node_str(s)
-    parse_whole(snode, s)
+    try 
+        parse_whole(snode, s)
+    catch e
+        println(e.msg)
+    end
 end
 
 Base.iterate(p::LinearSequence) = iterate(p.seq)

@@ -57,7 +57,11 @@ function latex(s::StringCalculus)
 end
 
 macro calc_str(s)
-    parse_whole(calculus, s)
+    try
+        parse_whole(calculus, s)
+    catch e
+        println(e.msg)
+    end
 end
 
 
