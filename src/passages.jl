@@ -51,13 +51,13 @@ struct PickPassage <: Passage
     above::Bool
 end
 
-@rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"f|n"p & ")" > (f,ou,a,_,g,fn,_) -> PickPassage(f,g,fn=="n",ou=="o",a=="a")
+@rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"[fn]"p & ")" > (f,ou,a,_,g,fn,_) -> PickPassage(f,g,fn=="n",ou=="o",a=="a")
 
 Base.string(f::PickPassage) = "$(string(f.fun))$(f.over ? "o" : "u")$(f.above ? "a" : "")($(string(f.arg))$(f.near ? "n" : "f"))"
 
 function latex(f::PickPassage)
     arrow = "\\$(f.fun.type == f.arg.type ? "l" : "L")ong$(f.fun.idx <= f.arg.idx ? "right" : "left")arrow"
-    "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}$(f.above ? "\\downarrow" : "")\\left($(string(f.arg))$(f.near ? "n" : "f")\\right)"
+    "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}\\left($(f.above ? "\\over" : "\\under")line{$(string(f.arg))$(f.near ? "n" : "f")}\\right)"
 end
 
 (f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near, f.above)
