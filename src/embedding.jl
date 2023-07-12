@@ -81,39 +81,39 @@ end
 
 function node_labels_and_fixed_positions(p::LinearSequence)
     D = Dict{SeqNode, Int}()
-    function pos(n)
+    function pos(n::SeqNode)
         θ = [-π/2; 0.0:π/6:π/2]
-        if n.type == :L
-            SVector(-0.5*cos(θ[n.idx]), -sin(θ[n.idx]))
+        if type(n) == :L
+            SVector(-0.5*cos(θ[idx(n)]), -sin(θ[idx(n)]))
         else
-            SVector(0.5*cos(θ[n.idx]) + 3, -sin(θ[n.idx]))
+            SVector(0.5*cos(θ[idx(n)]) + 3, -sin(θ[idx(n)]))
         end
     end
 
-    idx = 0
+    i = 0
     vfixed = Int[]
     pfixed = fill(SVector(0.,0.), 0)
     vlabels = String[]
     for n in p
         if isframenode(n)
             if !haskey(D, n)
-                idx +=1; D[n] = idx
-                push!(vfixed, idx)
+                i +=1; D[n] = i
+                push!(vfixed, i)
                 push!(pfixed, pos(n))
                 push!(vlabels, string(n))
                 #@show vlabels[end] pfixed[end]
             end
         else
-            n1 = SeqNode(n.type == :U ? :O : :U, n.idx)
+            n1 = SeqNode(type(n) == :U ? :O : :U, idx(n))
             if !haskey(D, n1)
-                idx += 1; D[n] = idx
-                push!(vlabels, "x$(n.idx)")
+                i += 1; D[n] = i
+                push!(vlabels, "x$(idx(n))")
             else
                 D[n] = D[n1]
             end
         end
     end
-    idx, vlabels, vfixed, pfixed, D
+    i, vlabels, vfixed, pfixed, D
 end
 
 
@@ -137,14 +137,14 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
  
     locs_fixed = reduce(vcat, p' for p in pfixed)
     underlist = [
-        [Edge(index(p[i]), n + i) for i in eachindex(p) if p[i].type == :U];
-        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type == :U]
+        [Edge(index(p[i]), n + i) for i in eachindex(p) if type(p[i]) == :U];
+        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if type(p[i+1]) == :U]
     ] 
     gunder = SimpleGraphFromIterator(underlist)
 
     overlist = [
-        [Edge(index(p[i]), n + i) for i in eachindex(p) if p[i].type ∈ (:O,:L,:R)];
-        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if p[i+1].type ∈ (:O,:L,:R)]
+        [Edge(index(p[i]), n + i) for i in eachindex(p) if type(p[i]) != :U];
+        [Edge(n + i, index(p[i + 1])) for i in eachindex(p) if type(p[i+1]) != :U]
     ]
     gover = SimpleGraphFromIterator(overlist)
 
