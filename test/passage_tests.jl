@@ -34,7 +34,7 @@ end
 end
 
 @testset "release" begin
-    p = seq"Ll:x1(0):R2:x2(0):L5:R5:x2(U):L2:xl(U):x3(U):Rl:x3(0)"
+    p = seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):x3(U):R1:x3(0)"
     @test release(p, node"L1") == seq"L2:x1(U):R5:L5:x1(0):R2:x2(0):x3(0):R1:x3(U):x2(U)"
 end
 
