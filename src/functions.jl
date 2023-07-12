@@ -13,30 +13,31 @@ function simplify(p::LinearSequence)
         D2 = Dict{Int,Int}()
 
         for (i,n) in pairs(p)
-            if n.type == :O
-                D1[n.idx] = i
-            elseif n.type == :U
-                D2[n.idx] = i
+            #@show n type(n) idx(n)
+            if type(n) == :O
+                D1[idx(n)] = i
+            elseif type(n) == :U
+                D2[idx(n)] = i
             end
         end
         #@show D1 D2
         rem = Int[]
-        for (idx,i) in pairs(D1)
-            idx ∈ rem && continue
+        for (j,i) in pairs(D1)
+            j ∈ rem && continue
             # lemma 2a
-            #@show D2 idx D2[idx] i isadjacent(D2[idx], i)
-            if isadjacent(D2[idx], i)
+            #@show D2 j D2[j] i isadjacent(D2[j], i)
+            if isadjacent(D2[j], i)
                 push!(rem, i)
-                push!(rem, D2[idx])
+                push!(rem, D2[j])
             end
             # lemma 2b
-            if idx > 1 && 
-                isadjacent(i,       D1[idx-1]) &&
-                isadjacent(D2[idx], D2[idx-1])
+            if j > 1 && 
+                isadjacent(i,       D1[j-1]) &&
+                isadjacent(D2[j], D2[j-1])
                 push!(rem, i)
-                push!(rem, D1[idx-1])
-                push!(rem, D2[idx])
-                push!(rem, D2[idx-1])
+                push!(rem, D1[j-1])
+                push!(rem, D2[j])
+                push!(rem, D2[j-1])
             end        
         end
         isempty(rem) && break
@@ -48,7 +49,7 @@ end
 
 
 function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool)
-    @assert f.type == arg.type # only on the same side
+    @assert type(f) == type(arg) # only on the same side
     isframenode(arg) || throw(ArgumentError("Only frame nodes can identify sectors"))
     isframenode(f) || throw(ArgumentError("Only frame nodes can be functors"))
     nold = numcrossings(p) 
@@ -66,7 +67,7 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
     (U, O) = over ? (:U, :O) : (:O, :U)
 
     # is the functor below the arg?
-    fbelow = f.idx < arg.idx
+    fbelow = idx(f) < idx(arg)
     # is the arg of the functor on the right of i in the seq?
     argnext = (near == isnearsidenext(p, i))
     # @show argnext
@@ -75,9 +76,9 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
         addpair(i + !argnext, U, !argnext)
     end
 
-    middle = [(n.idx,j) for (j,n) in pairs(p) if 
-        p[j].type == f.type && (p[j].idx-f.idx)*(p[j].idx-arg.idx) < 0]
-    sort!(middle; rev=(f.idx < arg.idx))
+    middle = [(idx(n),j) for (j,n) in pairs(p) if 
+        type(p[j]) == type(f) && (idx(p[j])-idx(f))*(idx(p[j])-idx(arg)) < 0]
+    sort!(middle; rev=(idx(f) < idx(arg)))
 
     #@show [p[j] for (_,j) in middle]
 
@@ -110,23 +111,23 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
 end
 
 function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool, above::Bool=false)
-    f.type == arg.type && return pick_sameside(p, over, f, arg, near)
-    extra = f.idx > arg.idx ? 0 : 6 ## check
-    farg, ffun = SeqNode(arg.type, extra), SeqNode(f.type, extra)
+    type(f) == type(arg) && return pick_sameside(p, over, f, arg, near)
+    extra = idx(f) > idx(arg) ? 0 : 6 ## check
+    farg, ffun = SeqNode(type(arg), extra), SeqNode(type(f), extra)
     p = pick_sameside(p, over, farg, arg, near)
     p.seq[findframenode(farg, p)] = ffun
     #println(p)
-    p = pick_sameside(p, over, f, ffun, f.idx < extra)
+    p = pick_sameside(p, over, f, ffun, idx(f) < extra)
     p = release(p, ffun) 
     if above
-        p = twist(p, f, f.idx < arg.idx)
+        p = twist(p, f, idx(f) < idx(arg))
     end
     p |> simplify
 end
 
 function twist(p::LinearSequence, f::SeqNode, away::Bool)
     i = findframenode(f, p)
-    n = maximum(x->x.idx, Iterators.filter(!isframenode, p); init=0)
+    n = maximum(idx, Iterators.filter(!isframenode, p); init=0)
     U, O = away == isnearsidenext(p, f) ? (:U, :O) : (:O, :U)
     canonical(@views LinearSequence([
         p.seq[1:i-1]; 
