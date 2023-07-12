@@ -26,6 +26,8 @@ struct FrameNode <: SeqNode
     end
 end
 
+SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, idx)
+
 @rule fnode = r"[LR]" & r"\d+" > (t,d) -> FrameNode(Symbol(t), parse(Int, d))
 @rule xnode = "x" & r"\d+" & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> CrossNode(t == "U" ? :U : :O, parse(Int, d))
 @rule snode = fnode, xnode
