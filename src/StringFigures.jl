@@ -7,7 +7,7 @@ include("passages.jl")
 include("calculus.jl")
 
 export LinearSequence, SeqNode,
-        @seq_str, @node_str, @calc_str, @pass_str, plot, latex,
+        @node_str, @seq_str, @storer_str, @pass_str, @calc_str, @proc_str, plot, latex,
         isframenode, isfarsidenext, isnearsidenext, iscanonical,
         canonical, release, simplify, pick, twist,
         Passage, ExtendPassage, PickPassage, ReleasePassage, TwistPassage, 

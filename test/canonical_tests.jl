@@ -13,7 +13,7 @@ orient = seq"L1:R1:R5:L5"
 # diff starting point AND ccw orientation
 both = seq"L5:L1:R1:R5"
 # noncanonical with crossings
-noncanonical = seq"L1:x1(U):L2:x3(U):x1(O):R2:x3(O):R1"
+noncanonical = seq"L1:x1(U):L2:x3(U):x1(0):R2:x3(0):R1"
 
 @testset "convert to canonical" begin
     # get inner sequence of a LinearSequence
