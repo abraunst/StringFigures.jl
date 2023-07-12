@@ -1,5 +1,6 @@
 module StringFigures
 
+include("node.jl")
 include("linearsequence.jl")
 include("embedding.jl")
 include("functions.jl")
