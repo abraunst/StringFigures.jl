@@ -1,5 +1,4 @@
-function release(p::LinearSequence, n::SeqNode)
-    @assert isframenode(n)
+function release(p::LinearSequence, n::FrameNode)
     p2 = LinearSequence(filter(!=(n), p.seq))
     canonical(p2)
 end
@@ -48,7 +47,7 @@ function simplify(p::LinearSequence)
 end
 
 
-function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool)
+function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool)
     @assert type(f) == type(arg) # only on the same side
     isframenode(arg) || throw(ArgumentError("Only frame nodes can identify sectors"))
     isframenode(f) || throw(ArgumentError("Only frame nodes can be functors"))
@@ -60,7 +59,7 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
     newcross = [SeqNode[] for _ in eachindex(p)]
     function addpair(x, U, b)
         append!(newcross[mod(x, eachindex(p))], 
-            (SeqNode(U, n + b), SeqNode(U, n + !b)))
+            (CrossNode(U, n + b), CrossNode(U, n + !b)))
         #println("adding pair ", newcross[mod(x, eachindex(p))], " at pos $x($(p[x-1])↓$(p[x]))" )
         n += 2
     end
@@ -76,9 +75,9 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
         addpair(i + !argnext, U, !argnext)
     end
 
-    middle = [(idx(n),j) for (j,n) in pairs(p) if 
-        type(p[j]) == type(f) && (idx(p[j])-idx(f))*(idx(p[j])-idx(arg)) < 0]
-    sort!(middle; rev=(idx(f) < idx(arg)))
+    middle = [(idx(n),j) for (j,n) in pairs(p) if p[j] != f && p[j] != arg && 
+        type(p[j]) == type(f) && (idx(p[j]) < idx(f)) != (idx(p[j]) < idx(arg))]
+    sort!(middle; rev=fbelow)
 
     #@show [p[j] for (_,j) in middle]
 
@@ -93,9 +92,9 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
     #cnext = (fbelow == isfarsidenext(p, i))
     # add spike
     c = Iterators.flatten((
-        (SeqNode(O, j) for j in nold+1:2:n-2),
+        (CrossNode(O, j) for j in nold+1:2:n-2),
         (f,),
-        (SeqNode(O, j) for j in n-1:-2:nold+2)))
+        (CrossNode(O, j) for j in n-1:-2:nold+2)))
     #@show newcross
     append!(newcross[mod(i + argnext, eachindex(p))],
             !argnext ? c : Iterators.reverse(c)) 
@@ -110,10 +109,10 @@ function pick_sameside(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, 
     #canonical(LinearSequence(vnew))
 end
 
-function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Bool, above::Bool=false)
+function pick(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)
     type(f) == type(arg) && return pick_sameside(p, over, f, arg, near)
-    extra = idx(f) > idx(arg) ? 0 : 6 ## check
-    farg, ffun = SeqNode(type(arg), extra), SeqNode(type(f), extra)
+    extra = idx(f) > idx(arg) ? (0,0) : (6,0) ## check
+    farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
     p = pick_sameside(p, over, farg, arg, near)
     p.seq[findframenode(farg, p)] = ffun
     #println(p)
@@ -125,15 +124,15 @@ function pick(p::LinearSequence, over::Bool, f::SeqNode, arg::SeqNode, near::Boo
     p |> simplify
 end
 
-function twist(p::LinearSequence, f::SeqNode, away::Bool)
+function twist(p::LinearSequence, f::FrameNode, away::Bool)
     i = findframenode(f, p)
     n = maximum(idx, Iterators.filter(!isframenode, p); init=0)
     U, O = away == isnearsidenext(p, f) ? (:U, :O) : (:O, :U)
     canonical(@views LinearSequence([
         p.seq[1:i-1]; 
-        SeqNode(U, n+1); 
+        CrossNode(U, n+1); 
         f; 
-        SeqNode(O, n+1); 
+        CrossNode(O, n+1); 
         p.seq[i+1:end]]))
 end
 
