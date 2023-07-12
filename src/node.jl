@@ -34,6 +34,7 @@ SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, i
 
 idx(n::SeqNode) = n.index
 idx(n::FrameNode) = (n.index, n.loop)
+loop(n::FrameNode) = n.loop
 type(n::SeqNode) = n.nodetype
 
 function Base.string(n::FrameNode)

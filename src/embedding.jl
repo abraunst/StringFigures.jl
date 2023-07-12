@@ -85,9 +85,9 @@ function node_labels_and_fixed_positions(p::LinearSequence)
         id,l = idx(n)
         θ = [-π/2; 0.0:π/6:π/2]
         if type(n) == :L
-            SVector(-0.5*cos(θ[id]+l*π/60), -sin(θ[id]+l*π/60))
+            SVector(-0.5*cos(θ[id]+l*π/18), -sin(θ[id]+l*π/18))
         else
-            SVector(0.5*cos(θ[id]+l*π/60) + 3, -sin(θ[id]+l*π/60))
+            SVector(0.5*cos(θ[id]+l*π/18) + 3, -sin(θ[id]+l*π/18))
         end
     end
 
