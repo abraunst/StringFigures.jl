@@ -65,9 +65,20 @@ macro calc_str(s)
 end
 
 
+
 struct StringProcedure
     initial::LinearSequence
     calculus::StringCalculus
+end
+
+@rule procedure = (linseq & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
+
+macro proc_str(s)
+    try
+        parse_whole(procedure, s)
+    catch e
+        println(e.msg)
+    end
 end
 
 Base.iterate(p::StringProcedure) = length(p.calculus) > 0 ? (p.initial, (1,p.initial)) : nothing  

@@ -1,5 +1,7 @@
 using PEG
 
+####### Nodes in a linear sequence
+
 struct SeqNode
     type::Symbol
     idx::Int
@@ -14,14 +16,41 @@ end
 @rule fnode = r"[LR]" & r"\d+" > (t,d) -> SeqNode(Symbol(t), parse(Int, d))
 @rule xnode = "x" & r"\d+" & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> SeqNode(t == "U" ? :U : :O, parse(Int, d))
 @rule snode = fnode, xnode
-@rule snodec = snode & ":" > (x,_) -> x
-@rule linseq = snodec[*] & snode > (x,y) -> LinearSequence(push!(copy(x),y))
 
-Base.:(<)(s::SeqNode, t::SeqNode) = s.idx < t.idx
+macro node_str(s)
+    try 
+        parse_whole(snode, s)
+    catch e
+        println(e.msg)
+    end
+end
+
+
+######## Linear Sequence
 
 struct LinearSequence
     seq::Vector{SeqNode}
 end
+
+@rule snodec = snode & ":" > (x,_) -> x
+@rule O1 = r"O1"p > (_...,)->LinearSequence([node"L1",node"L5",node"R5",node"R1"])
+@rule OA = r"OA"p > (_...,)->LinearSequence([node"L1",node"x1(0)",node"R2",node"x2(0)",node"L5",node"R5",node"x2(U)",node"L2",node"x1(U)",node"R1"])
+@rule linseq = O1,OA,(snodec[*] & snode > (x,y) -> LinearSequence(push!(copy(x),y)))
+
+macro seq_str(s)
+    # allow some fuzziness to be able to easily copy-paste 
+    # from Storer's OCR'd book :)
+    s = replace(s, "\n"=>"", " " => "", "{" => "(", "l" => "1", ";" => ":", 
+        "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7")
+    try 
+        parse_whole(linseq, s)
+    catch e
+        println(e.msg)
+    end
+end
+
+Base.:(<)(s::SeqNode, t::SeqNode) = s.idx < t.idx
+
 
 Base.length(p::LinearSequence) = length(p.seq)
 
@@ -143,25 +172,6 @@ isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findframenode(n,
 
 isnearsidenext(p::LinearSequence, n::Union{Int, SeqNode}) = !isfarsidenext(p, n)
 
-macro seq_str(s)
-    # allow some fuzziness to be able to easily copy-paste 
-    # from Storer's OCR'd book :)
-    s = replace(s, "\n"=>"", " " => "", "{" => "(", "l" => "1", ";" => ":", 
-        "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7")
-    try 
-        parse_whole(linseq, s)
-    catch e
-        println(e.msg)
-    end
-end
-
-macro node_str(s)
-    try 
-        parse_whole(snode, s)
-    catch e
-        println(e.msg)
-    end
-end
 
 Base.iterate(p::LinearSequence) = iterate(p.seq)
 Base.iterate(p::LinearSequence, s) = iterate(p.seq, s)
