@@ -37,16 +37,23 @@ end
 @rule OA = r"OA"p > (_...,)->LinearSequence([node"L1",node"x1(0)",node"R2",node"x2(0)",node"L5",node"R5",node"x2(U)",node"L2",node"x1(U)",node"R1"])
 @rule linseq = O1,OA,(snodec[*] & snode > (x,y) -> LinearSequence(push!(copy(x),y)))
 
-macro seq_str(s)
-    # allow some fuzziness to be able to easily copy-paste 
-    # from Storer's OCR'd book :)
-    s = replace(s, "\n"=>"", " " => "", "{" => "(", "l" => "1", ";" => ":", 
-        "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7")
+function parseseq(s)
     try 
         parse_whole(linseq, s)
     catch e
         println(e.msg)
     end
+end
+
+macro seq_str(s)
+    @eval parseseq($s)
+end
+
+macro storer_str(s)
+    # allow some fuzziness to be able to easily copy-paste 
+    # from Storer's OCR'd book :)
+    @eval parseseq(replace($s, "\n"=>"", " " => "", "{" => "(", "l" => "1", ";" => ":", 
+    "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7"))
 end
 
 Base.:(<)(s::SeqNode, t::SeqNode) = s.idx < t.idx
