@@ -49,8 +49,6 @@ end
 
 function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool)
     @assert type(f) == type(arg) # only on the same side
-    isframenode(arg) || throw(ArgumentError("Only frame nodes can identify sectors"))
-    isframenode(f) || throw(ArgumentError("Only frame nodes can be functors"))
     nold = numcrossings(p) 
     n = nold + 1
     k = 1 + maximum(loop(n) for n in p if type(n) == type(f) && idx(n)[1] == idx(f)[1]; init=-1)
