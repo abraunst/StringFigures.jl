@@ -1,6 +1,9 @@
 function release(p::LinearSequence, n::FrameNode)
-    p2 = LinearSequence(filter(!=(n), p.seq))
-    canonical(p2)
+    dn, ln = idx(n)
+    map(filter(!=(n), p.seq)) do m
+        dm,lm = idx(m)
+        type(m) == type(n) && dm == dn && lm > ln ? FrameNode(type(n), dn, lm - 1) : m
+    end |> LinearSequence |> canonical
 end
 
 
