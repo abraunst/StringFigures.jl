@@ -45,7 +45,7 @@ test StringFigures
 - [x] Elementary visualization (no crossings)
 - [x] Crossings visualization
 - [x] Only plot active frame nodes
-- [ ] Multi-loop framenodes
+- [x] Multi-loop framenodes
 - [ ] Better layout, better string physics?
 
 ### Calculus
@@ -61,9 +61,9 @@ test StringFigures
 - [X] Pick from above
 - [ ] $\phi_3$ passages and heuristics to decide when to apply it
 - [ ] Pick with non-standard arguments
-- [ ] Multiple loops in a single Ln or Rn
+- [x] Multiple loops in a single Ln or Rn
 - [ ] Non-finger functors
-- [ ] Pick from non-empty framenode
+- [x] Pick from non-empty framenode
 - [x] Syntactic sugar for passages
 - [x] Elementary `StringCalculus`s
 - [x] LaTeX output of `StringCalculus`
