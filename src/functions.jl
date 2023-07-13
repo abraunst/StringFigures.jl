@@ -53,10 +53,8 @@ function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNo
     isframenode(f) || throw(ArgumentError("Only frame nodes can be functors"))
     nold = numcrossings(p) 
     n = nold + 1
-    if !isnothing(findframenode(f, p))
-        k = maximum(loop(n) for n in p if type(n) == type(f) && idx(n)[1] == idx(f)[1]; init=0)
-        f = FrameNode(type(f), idx(f)[1], k + 1)
-    end
+    k = 1 + maximum(loop(n) for n in p if type(n) == type(f) && idx(n)[1] == idx(f)[1]; init=-1)
+    f = FrameNode(type(f), idx(f)[1], k)
 
     i = findframenode(arg, p) 
     !isnothing(i) || throw(ArgumentError("Non existing argument"))
