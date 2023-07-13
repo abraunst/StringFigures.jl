@@ -55,9 +55,9 @@ test StringFigures
 - [x] Extend, i.e. the $\mid$ operation (Storer, p003)
   - Lemma 2 A. and B. (Storer, p011) on extension cancellation
 - [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below
-    - e.g. $\overset{\longleftarrow}{L3}\left(\underline{L5n}\right)$
-    - i.e. pass $L3$ (away) **over** all intermediate strings and pick up $L5n$ from below
-    - this is encoded as `L3o(L5n)`
+  - e.g. $\overset{\longleftarrow}{L3}\left(\underline{L5n}\right)$
+  - i.e. pass $L3$ (away) **over** all intermediate strings and pick up $L5n$ from below
+  - this is encoded as `L3o(L5n)`
 - [X] Pick from above
 - [ ] $\phi_3$ passages and heuristics to decide when to apply it
 - [ ] Pick with non-standard arguments
