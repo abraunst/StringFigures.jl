@@ -45,7 +45,7 @@ test StringFigures
 - [x] Elementary visualization (no crossings)
 - [x] Crossings visualization
 - [x] Only plot active frame nodes
-- [ ] Multi-loop framenodes
+- [x] Multi-loop framenodes
 - [ ] Better layout, better string physics?
 
 ### Calculus
@@ -55,15 +55,15 @@ test StringFigures
 - [x] Extend, i.e. the $\mid$ operation (Storer, p003)
   - Lemma 2 A. and B. (Storer, p011) on extension cancellation
 - [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below
-    - e.g. $\overset{\longleftarrow}{L3}\left(\underline{L5n}\right)$
-    - i.e. pass $L3$ (away) **over** all intermediate strings and pick up $L5n$ from below
-    - this is encoded as `L3o(L5n)`
+  - e.g. $\overset{\longleftarrow}{L3}\left(\underline{L5n}\right)$
+  - i.e. pass $L3$ (away) **over** all intermediate strings and pick up $L5n$ from below
+  - this is encoded as `L3o(L5n)`
 - [X] Pick from above
 - [ ] $\phi_3$ passages and heuristics to decide when to apply it
 - [ ] Pick with non-standard arguments
-- [ ] Multiple loops in a single Ln or Rn
+- [x] Multiple loops in a single Ln or Rn
 - [ ] Non-finger functors
-- [ ] Pick from non-empty framenode
+- [x] Pick from non-empty framenode
 - [x] Syntactic sugar for passages
 - [x] Elementary `StringCalculus`s
 - [x] LaTeX output of `StringCalculus`

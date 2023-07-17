@@ -56,7 +56,7 @@ end
 Base.string(f::PickPassage) = "$(string(f.fun))$(f.over ? "o" : "u")$(f.above ? "a" : "")($(string(f.arg))$(f.near ? "n" : "f"))"
 
 function latex(f::PickPassage)
-    arrow = "\\$(f.fun.type == f.arg.type ? "l" : "L")ong$(f.fun.idx <= f.arg.idx ? "right" : "left")arrow"
+    arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(idx(f.fun) <= idx(f.arg) ? "right" : "left")arrow"
     "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}\\left($(f.above ? "\\over" : "\\under")line{$(string(f.arg))$(f.near ? "n" : "f")}\\right)"
 end
 

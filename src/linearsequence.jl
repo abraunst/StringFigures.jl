@@ -1,31 +1,5 @@
 using PEG
 
-####### Nodes in a linear sequence
-
-struct SeqNode
-    type::Symbol
-    idx::Int
-    function SeqNode(type, idx)
-        idx ≥ 0 || throw(ArgumentError("Wrong index $idx"))
-        type ∈ (:L, :R, :U, :O) || throw(ArgumentError("Wrong type $type"))
-        #type ∉ (:L, :R) || 1 ≤ idx ≤ 5 || throw(ArgumentError("Wrong index $idx"))
-        new(type, idx)
-    end
-end
-
-@rule fnode = r"[LR]" & r"\d+" > (t,d) -> SeqNode(Symbol(t), parse(Int, d))
-@rule xnode = "x" & r"\d+" & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> SeqNode(t == "U" ? :U : :O, parse(Int, d))
-@rule snode = fnode, xnode
-
-macro node_str(s)
-    try 
-        parse_whole(snode, s)
-    catch e
-        println(e.msg)
-    end
-end
-
-
 ######## Linear Sequence
 
 struct LinearSequence
@@ -56,64 +30,48 @@ macro storer_str(s)
     "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7"))
 end
 
-Base.:(<)(s::SeqNode, t::SeqNode) = s.idx < t.idx
-
-
 Base.length(p::LinearSequence) = length(p.seq)
 
 function gaussish_code(p::LinearSequence)
     map(p.seq) do n
         if n.type == :U 
-            -n.idx
+            -idx(n)
         else
-            n.idx
+            idx(n)
         end
     end
 end
-
-function Base.string(n::SeqNode)
-    if n.type ∈ (:L,:R)
-        "$(n.type)$(n.idx)" 
-    elseif n.type == :U
-        "x$(n.idx)(U)"
-    else
-        "x$(n.idx)(0)"
-    end
-end
-
-Base.show(io::IO, p::SeqNode) = print(io, "node\"", string(p), "\"")
 
 function Base.show(io::IO, p::LinearSequence)
     print(io, "seq\"", join(string.(p.seq),":"), "\"")
 end
 
+### equivalent to canonical(p).seq == p.seq but faster and non-allocating
 function iscanonical(p::LinearSequence)
-    p[begin].type == :L || return false
-    L = p[begin].idx
+    type(p[begin]) == :L || return false
+    L = idx(p[begin])
     isnearsidenext(p, p[begin]) && return false
     last = 0
     for j in 2:lastindex(p)
-        if p[j].type ∈ (:O, :U)
-            if p[j].idx > last + 1 
+        if type(p[j]) ∈ (:O, :U)
+            if idx(p[j]) > last + 1 
                 return false
-            elseif p[j].idx > last
+            elseif idx(p[j]) > last
                 last += 1
             end
-        elseif p[j].type == :L
-            p[j].idx < L && return false
+        elseif type(p[j]) == :L
+            idx(p[j]) < L && return false
         end
     end
     return true
 end
 
-
-
 function canonical(p::LinearSequence)
     # find first active left finger
-    L, Lpos = 11, 0
+    L, Lpos = (99,0), 0
     for (i,n) in pairs(p)
-        if n.type == :L && n.idx < L
-            L, Lpos = n.idx, i
+        if type(n) == :L && idx(n) < L
+            L, Lpos = idx(n), i
         end
     end
 
@@ -122,28 +80,28 @@ function canonical(p::LinearSequence)
     #@show L, Lpos, rev
 
     D = Dict{Int,Int}()
-    idx = 1
+    j = 1
 
     #rebuild the sequence in canonical order
     map(eachindex(p)) do i
         n = p[rev ? Lpos - i + 1 : Lpos + i - 1]
-        if n.type ∈ (:L, :R)
+        if isframenode(n)
             n
         else
-            if !haskey(D, n.idx)
-                D[n.idx] = idx
-                idx += 1
+            if !haskey(D, idx(n))
+                D[idx(n)] = j
+                j += 1
             end
-            SeqNode(n.type, D[n.idx])
+            CrossNode(type(n), D[idx(n)])
         end
     end |> LinearSequence
 end
 
-isframenode(n::SeqNode) = n.type ∈ (:L, :R)
+isframenode(n::SeqNode) = n isa FrameNode
 
-findframenode(f,p) = findfirst(==(f), p)
+findframenode(f::FrameNode,p) = findfirst(==(f), p)
 
-numcrossings(p::LinearSequence) = maximum(n.idx for n in p if n.type ∈ (:U, :O); init = 0)
+numcrossings(p::LinearSequence) = maximum(idx(n) for n in p if !isframenode(n); init = 0)
 
 function isfarsidenext(p::LinearSequence, i::Int)
     l, r = i, i
@@ -154,7 +112,7 @@ function isfarsidenext(p::LinearSequence, i::Int)
             r = i+k
             break
         else
-            push!(rset, n.idx) 
+            push!(rset, idx(n)) 
         end
     end
     for k in 1:length(p)-1
@@ -163,7 +121,7 @@ function isfarsidenext(p::LinearSequence, i::Int)
             l = i-k
             break
         else
-            push!(lset, n.idx)
+            push!(lset, idx(n))
         end
     end
 
@@ -172,12 +130,12 @@ function isfarsidenext(p::LinearSequence, i::Int)
 
     crossings = lset ∩ rset
     #@show crossings
-    (p[l].idx < p[r].idx) != isodd(length(crossings))
+    (idx(p[l]) < idx(p[r])) != isodd(length(crossings))
 end
 
-isfarsidenext(p::LinearSequence, n::SeqNode) = isfarsidenext(p, findframenode(n, p))
+isfarsidenext(p::LinearSequence, n::FrameNode) = isfarsidenext(p, findframenode(n, p))
 
-isnearsidenext(p::LinearSequence, n::Union{Int, SeqNode}) = !isfarsidenext(p, n)
+isnearsidenext(p::LinearSequence, n::Union{Int, FrameNode}) = !isfarsidenext(p, n)
 
 
 Base.iterate(p::LinearSequence) = iterate(p.seq)
