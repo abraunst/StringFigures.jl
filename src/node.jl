@@ -47,6 +47,18 @@ Base.string(n::CrossNode) =  "x$(idx(n))($(type(n) == :U ? 'U' : '0'))"
 
 Base.:(<)(s::FrameNode, t::FrameNode) = idx(s) < idx(t)
 
+function parsepeg(peg, s)
+    try 
+        parse_whole(peg, s)
+    catch e
+        if e isa Meta.ParseError
+            println(e.msg)
+        else
+            rethrow(e)
+        end
+    end
+end
+
 macro node_str(s)
     parsepeg(snode, s)
 end
