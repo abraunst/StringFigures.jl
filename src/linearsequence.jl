@@ -7,9 +7,7 @@ struct LinearSequence
 end
 
 @rule snodec = snode & ":" > (x,_) -> x
-@rule O1 = r"O1"p > (_...,)->LinearSequence([node"L1",node"L5",node"R5",node"R1"])
-@rule OA = r"OA"p > (_...,)->LinearSequence([node"L1",node"x1(0)",node"R2",node"x2(0)",node"L5",node"R5",node"x2(U)",node"L2",node"x1(U)",node"R1"])
-@rule linseq = O1,OA,(snodec[*] & snode > (x,y) -> LinearSequence(push!(copy(x),y)))
+@rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
 
 function parseseq(s)
     try 

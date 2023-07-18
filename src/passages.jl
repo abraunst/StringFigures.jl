@@ -11,7 +11,11 @@ abstract type Passage end
 Base.show(io::IO, ::MIME"text/latex", f::Passage) = print(io, "\$", latex(f), "\$")
 
 macro pass_str(s)
-    parse_whole(passage, s)
+    try
+        parse_whole(passage, s)
+    catch e
+        println(e.msg)
+    end
 end
 
 """
