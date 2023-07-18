@@ -57,11 +57,7 @@ function latex(s::StringCalculus)
 end
 
 macro calc_str(s)
-    try
-        parse_whole(calculus, s)
-    catch e
-        println(e.msg)
-    end
+    parsepeg(calculus, s)
 end
 
 
@@ -82,11 +78,7 @@ end
 @rule procedure = ((linseq,O1,OA) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
 
 macro proc_str(s)
-    try
-        parse_whole(procedure, s)
-    catch e
-        println(e.msg)
-    end
+    parsepeg(procedure, s)
 end
 
 Base.iterate(p::StringProcedure) = length(p.calculus) > 0 ? (p.initial, (1,p.initial)) : nothing  

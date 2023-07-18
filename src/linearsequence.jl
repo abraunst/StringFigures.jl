@@ -9,16 +9,20 @@ end
 @rule snodec = snode & ":" > (x,_) -> x
 @rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
 
-function parseseq(s)
+function parsepeg(peg, s)
     try 
-        parse_whole(linseq, s)
+        parse_whole(peg, s)
     catch e
-        println(e.msg)
+        if e isa Meta.ParseError
+            println(e.msg)
+        else
+            rethrow(e)
+        end
     end
 end
 
 macro seq_str(s)
-    @eval parseseq($s)
+    parsepeg(linseq, s)
 end
 
 macro storer_str(s)

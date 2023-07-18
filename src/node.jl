@@ -48,11 +48,7 @@ Base.string(n::CrossNode) =  "x$(idx(n))($(type(n) == :U ? 'U' : '0'))"
 Base.:(<)(s::FrameNode, t::FrameNode) = idx(s) < idx(t)
 
 macro node_str(s)
-    try 
-        parse_whole(snode, s)
-    catch e
-        println(e.msg)
-    end
+    parsepeg(snode, s)
 end
 
 Base.show(io::IO, p::SeqNode) = print(io, "node\"", string(p), "\"")
