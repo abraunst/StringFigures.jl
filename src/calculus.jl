@@ -81,7 +81,7 @@ macro proc_str(s)
     parsepeg(procedure, s)
 end
 
-Base.iterate(p::StringProcedure) = length(p.calculus) > 0 ? (p.initial, (1,p.initial)) : nothing  
+Base.iterate(p::StringProcedure) = (p.initial, (1,p.initial)) 
 function Base.iterate(p::StringProcedure, (i,s))
     i >= length(p) && return nothing
     nexts = p.calculus.seq[i](s)
