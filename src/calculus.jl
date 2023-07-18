@@ -57,31 +57,31 @@ function latex(s::StringCalculus)
 end
 
 macro calc_str(s)
-    try
-        parse_whole(calculus, s)
-    catch e
-        println(e.msg)
-    end
+    parsepeg(calculus, s)
 end
 
 
-
+"""
+A `StringProcedure``consists n an initial `LinearSequence` plus a 
+`StringCalculus` to be applied to it. It represents the full "movie" of
+the figure construction. It can be
+* indexed and iterated`to access each intermediate step
+* `plot`ed to show all steps
+"""
 struct StringProcedure
     initial::LinearSequence
     calculus::StringCalculus
 end
 
-@rule procedure = (linseq & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
+@rule O1 = r"O1"p[1] > _ -> seq"L1:L5:R5:R1"
+@rule OA = r"OA"p[1] > _ -> seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
+@rule procedure = ((linseq,O1,OA) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
 
 macro proc_str(s)
-    try
-        parse_whole(procedure, s)
-    catch e
-        println(e.msg)
-    end
+    parsepeg(procedure, s)
 end
 
-Base.iterate(p::StringProcedure) = length(p.calculus) > 0 ? (p.initial, (1,p.initial)) : nothing  
+Base.iterate(p::StringProcedure) = (p.initial, (1,p.initial)) 
 function Base.iterate(p::StringProcedure, (i,s))
     i >= length(p) && return nothing
     nexts = p.calculus.seq[i](s)

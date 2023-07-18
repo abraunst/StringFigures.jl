@@ -28,8 +28,9 @@ end
 
 SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, idx)
 
-@rule fnode = r"[LR]" & r"\d+" & (("." & r"\d+"), "") > (t,d,l) -> FrameNode(Symbol(t), parse(Int, d), l=="" ? 0 : parse(Int,l[2]))
-@rule xnode = "x" & r"\d+" & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> CrossNode(t == "U" ? :U : :O, parse(Int, d))
+@rule int =  r"\d+"[1] > x -> parse(Int, x)
+@rule fnode = r"[LR]" & int & ("." & int)[0:1] > (t,d,l) -> FrameNode(Symbol(t), d, isempty(l) ? 0 : only(l)[2])
+@rule xnode = "x" & int & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> CrossNode(t == "U" ? :U : :O, d)
 @rule snode = fnode, xnode
 
 idx(n::SeqNode) = n.index
@@ -42,16 +43,24 @@ function Base.string(n::FrameNode)
     l == 0 ? "$(type(n))$i" : "$(type(n))$i.$l"
 end
 
-Base.string(n::CrossNode) = type(n) == :U ? "x$(idx(n))(U)" : "x$(idx(n))(0)"
+Base.string(n::CrossNode) =  "x$(idx(n))($(type(n) == :U ? 'U' : '0'))"
 
 Base.:(<)(s::FrameNode, t::FrameNode) = idx(s) < idx(t)
 
-macro node_str(s)
+function parsepeg(peg, s)
     try 
-        parse_whole(snode, s)
+        parse_whole(peg, s)
     catch e
-        println(e.msg)
+        if e isa Meta.ParseError
+            println(e.msg)
+        else
+            rethrow(e)
+        end
     end
+end
+
+macro node_str(s)
+    parsepeg(snode, s)
 end
 
 Base.show(io::IO, p::SeqNode) = print(io, "node\"", string(p), "\"")
