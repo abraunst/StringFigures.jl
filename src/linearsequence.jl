@@ -16,8 +16,9 @@ end
 macro storer_str(s)
     # allow some fuzziness to be able to easily copy-paste 
     # from Storer's OCR'd book :)
-    @eval parseseq(replace($s, "\n"=>"", " " => "", "{" => "(", "l" => "1", ";" => ":", 
-    "O" => "0", "S" => "5", "X" => "x", "B" => "8", "G" => "6", "?" => "7"))
+    parsepeg(linseq, replace(s, "\n"=>"", " " => "", "{" => "(",
+        "l" => "1", ";" => ":", "O" => "0", "S" => "5", "X" => "x",
+        "B" => "8", "G" => "6", "?" => "7"))
 end
 
 Base.length(p::LinearSequence) = length(p.seq)
