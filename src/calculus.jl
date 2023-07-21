@@ -35,7 +35,7 @@ Base.:(^)(s::StringCalculus, k::Integer) = StringCalculus(reduce(vcat, (s.seq fo
 
 Base.show(io::IO, s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), " # "), "\"")
 
-Base.show(io::IO, ::MIME"text/latex", s::StringCalculus) = print(io, latex(s))
+Base.show(io::IO, ::MIME"text/latex", s::StringCalculus) = print(io, "\$", latex(s), "\$")
 
 function Base.string(s::StringCalculus)
     map(eachindex(s.seq)) do i
@@ -49,11 +49,11 @@ end
 function latex(s::StringCalculus)
     l = map(eachindex(s.seq)) do i
         o = latex(s.seq[i])
-        s.seq[i] isa ExtendPassage && return o
+        s.seq[i] isa ExtendPassage && return o * " "
         i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage && return o
-        o * "\\#"
+        o * "\\# "
     end
-    "\$$(join(l))\$"
+    "$(join(l))"
 end
 
 macro calc_str(s)
@@ -72,13 +72,25 @@ struct StringProcedure
     initial::LinearSequence
     calculus::StringCalculus
 end
-
-@rule O1 = r"O1"p[1] > _ -> seq"L1:L5:R5:R1"
-@rule OA = r"OA"p[1] > _ -> seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
+_O1 = seq"L1:L5:R5:R1"
+_OA = seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
+@rule O1 = r"O1"p[1] > _ -> _O1
+@rule OA = r"OA"p[1] > _ -> _OA
 @rule procedure = ((linseq,O1,OA) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
 
 macro proc_str(s)
     parsepeg(procedure, s)
+end
+
+function latex(p::StringProcedure)
+    ini = p.initial == _O1 ? "O1" :
+        p.initial == _OA ? "OA" :
+        string(p.initial)
+    "$ini~::~$(latex(p.calculus))"
+end
+
+function Base.show(io::IO, ::MIME"text/latex", p::StringProcedure)
+    print(io, "\$", latex(p), "\$")
 end
 
 Base.iterate(p::StringProcedure) = (p.initial, (1,p.initial)) 
