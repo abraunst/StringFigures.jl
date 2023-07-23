@@ -88,6 +88,8 @@ function canonical(p::LinearSequence)
     end |> LinearSequence
 end
 
+isadjacent(p::LinearSequence, i, j) = abs(i-j) == 1 || abs(i-j) == length(p) - 1
+
 isframenode(n::SeqNode) = n isa FrameNode
 
 findframenode(f::FrameNode,p) = findfirst(==(f), p)
@@ -132,8 +134,10 @@ isnearsidenext(p::LinearSequence, n::Union{Int, FrameNode}) = !isfarsidenext(p, 
 Base.iterate(p::LinearSequence) = iterate(p.seq)
 Base.iterate(p::LinearSequence, s) = iterate(p.seq, s)
 Base.getindex(p::LinearSequence, i) = @inbounds p.seq[mod(i,eachindex(p))]
-Base.getindex(p::LinearSequence, i::AbstractVector) = @inbounds p.seq[mod.(i,eachindex(p))]
+Base.setindex!(p::LinearSequence, v, i) = @inbounds p.seq[mod(i,eachindex(p))] = v
+Base.getindex(p::LinearSequence, i::AbstractVector) = @inbounds p.seq[mod.(i,(eachindex(p),))]
 Base.eachindex(p::LinearSequence) = eachindex(p.seq)
 Base.pairs(p::LinearSequence) = pairs(p.seq)
 Base.lastindex(p::LinearSequence) = lastindex(p.seq)
 Base.firstindex(p::LinearSequence) = firstindex(p.seq)
+Base.copy(p::LinearSequence) = LinearSequence(copy(p.seq))
