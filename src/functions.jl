@@ -3,7 +3,7 @@ function release(p::LinearSequence, n::FrameNode)
     map(filter(!=(n), p.seq)) do m
         if isframenode(m)
             dm,lm = idx(m)
-            type(m) == type(n) && dm == dn && lm > iln ? 
+            type(m) == type(n) && dm == dn && lm > ln ? 
                 FrameNode(type(n), dm, lm - 1) :
                 m
         else
@@ -16,7 +16,7 @@ end
 function simplify(p::LinearSequence)
     while true
         p = canonical(p)
-        isadjacent(i,j) = abs(i-j) == 1 || abs(i-j) == length(p) - 1
+        isadjacent(i,j) = abs(i - j) ∈ (1, length(p) - 1)
         D1 = Dict{Int,Int}()
         D2 = Dict{Int,Int}()
 
