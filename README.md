@@ -30,6 +30,42 @@ To run tests in [test/runtests.jl](./test/runtests.jl):
 test StringFigures
 ```
 
+## Grammar
+
+Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by a PEG using the `PEG.jl` library. The full grammar is shown below.
+
+* `SeqNode`s (`node.jl`). Use it with `node"xxx"`
+  ```julia
+  @rule int =  r"\d+"[1]
+  @rule fnode = r"[LR]" & int & ("." & int)[0:1]
+  @rule xnode = "x" & int & "(" & r"[0U]" & ")"
+  @rule snode = fnode, xnode
+  ```
+* `LinearSequence` (`linearsequence.jl`). Use it with `seq"xxx"`.
+  ```julia
+  @rule snodec = snode & ":"
+  @rule linseq = (snodec[*] & snode)
+  ```
+* `Passage`s (`passage.jl`). Use it with `pass"xxx"`
+  ```julia
+  @rule passage = extend_p, twist_p, release_p, pick_p
+  @rule extend_p = "|"
+  @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"[fn]"p & ")"
+  @rule release_p = "D" & fnode
+  @rule twist_p = r"[<>]" & fnode
+  ```
+* `Calculus`s (`calculus.jl`). Use it with `calc"xxx"`
+  ```julia
+  @rule passages = (passage & r"#?"p)
+  @rule calculus = r""p & passages[*]
+  @rule O1 = r"O1"p[1]
+  @rule OA = r"OA"p[1]
+  ```
+* `StringProcedure` (`calculus.jl`). Use it with `proc"xxx"`
+  ```julia
+  @rule procedure = ((linseq,O1,OA) & r"::"p & calculus)
+  ```
+
 
 ## Progress
 
