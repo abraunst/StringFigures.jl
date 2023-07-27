@@ -120,7 +120,7 @@ function isfarsidenext(p::LinearSequence, i::Int)
     @assert mod(l-i, length(p)) != 0 && mod(r-i, length(p)) != 0  "only 3 or more frame nodes!"
 
     crossings = lset ∩ rset
-    @show crossings
+    #@show crossings
     (idx(p[l]) < idx(p[r])) != isodd(length(crossings))
 end
 
