@@ -13,7 +13,7 @@ function release(p::LinearSequence, n::FrameNode)
 end
 
 
-function simplify(p::LinearSequence)
+function simplify12(p::LinearSequence)
     while true
         p = canonical(p)
         isadjacent(i,j) = abs(i - j) ∈ (1, length(p) - 1)
@@ -150,17 +150,6 @@ function Base.:(==)(p::LinearSequence, q::LinearSequence)
     (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)
 end
 
-
-
-function phi3!(p::LinearSequence, i::Int, j1, j2, k1, k2)
-    @assert p[i] isa CrossNode && p[i+1] isa CrossNode && type(p[i]) == type(p[i+1])
-    @assert p[i] == inverse(p[j1])
-    @assert p[i+1] == inverse(p[j2])
-    @assert k1 != k2 && abs(j1-k1) == 1 && abs(j2-k2) == 1 && idx(p[k1]) == idx(p[k2]) 
-
-    p
-end
-
 function simplify3(q::LinearSequence)
     p = copy(q)
     ten = tension(p)
@@ -170,20 +159,27 @@ function simplify3(q::LinearSequence)
             j1 = findfirst(==(inverse(p[i])),p)
             j2 = findfirst(==(inverse(p[i+1])),p)
             for (k1,k2) in Iterators.product((j1+1,j1-1),(j2+1,j2-1))
-                if k1 != k2 && abs(j1-k1) == 1 && abs(j2-k2) == 1 && idx(p[k1]) == idx(p[k2])
+                if p[k1] isa CrossNode && p[k2] isa CrossNode && 
+                        p[k1] == inverse(p[k2])
                     p1 = copy(p)
                     p1[i],p1[i+1] = p1[i+1],p1[i]
                     p1[j1],p1[k1] = p1[k1],p1[j1]
                     p1[j2],p1[k2] = p1[k2],p1[j2] 
-                    p1 = simplify(p1)
-                    t1 = tension(p1)
-                    if t1 < ten
-                        ten = t1
-                        return p1
-                    end
+                    p1 = simplify12(p1)
+                    tension(p1) < ten  && return p1
                 end
             end
         end
     end
     return p
+end
+
+
+function simplify(p::LinearSequence)
+    while true
+        q = simplify12(p)
+        q = simplify3(q)
+        q == p && return q
+        p = q
+    end
 end
