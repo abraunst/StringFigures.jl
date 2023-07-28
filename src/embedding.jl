@@ -204,7 +204,7 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
         EDGELINEWIDTH=0.2*fact, edgestrokec=colorant"white",
         NODESIZE=0.005, nodesize=[i ≤ n ? 1.0 : 0.0 for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
-        NODELABELSIZE=2.0, nodelabel=labels ? vlabels : nothing, nodelabeldist=9, 
+        NODELABELSIZE=2.0, nodelabel=labels ? @view(vlabels[1:nv(gover)]) : nothing, nodelabeldist=9, 
         nodelabelc=colorant"white", kwd...
         )
 
