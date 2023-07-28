@@ -1,7 +1,7 @@
 function release(p::LinearSequence, n::FrameNode)
     dn, ln = idx(n)
     map(filter(!=(n), p.seq)) do m
-        if isframenode(m)
+        if m isa FrameNode
             dm,lm = idx(m)
             type(m) == type(n) && dm == dn && lm > ln ? 
                 FrameNode(type(n), dm, lm - 1) :
@@ -12,7 +12,7 @@ function release(p::LinearSequence, n::FrameNode)
     end |> LinearSequence |> canonical
 end
 
-
+"ϕ₁ and ϕ₂ simplifications (lemmas 2a and 2b)"
 function simplify12(p::LinearSequence)
     while true
         p = canonical(p)
@@ -114,8 +114,8 @@ function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNo
         append!(vnew, newcross[j])
         push!(vnew, p[j])
     end
-    LinearSequence(vnew)
-    #canonical(LinearSequence(vnew))
+    #LinearSequence(vnew)
+    canonical(LinearSequence(vnew))
 end
 
 function pick(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)
@@ -145,11 +145,7 @@ function twist(p::LinearSequence, f::FrameNode, away::Bool)
         p.seq[i+1:end]]))
 end
 
-
-function Base.:(==)(p::LinearSequence, q::LinearSequence)
-    (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)
-end
-
+"ϕ₃ simplifications (lemma 2c)" 
 function simplify3(q::LinearSequence)
     p = copy(q)
     ten = tension(p)
@@ -174,10 +170,10 @@ function simplify3(q::LinearSequence)
     return p
 end
 
-
+"Extension-cancellation simplifications"
 function simplify(p::LinearSequence)
+    q = simplify12(p)
     while true
-        q = simplify12(p)
         q = simplify3(q)
         q == p && return q
         p = q
