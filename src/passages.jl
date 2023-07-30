@@ -6,7 +6,7 @@ The `Passage` type represents one passage or move in a string figure constructio
 """
 abstract type Passage end
 
-@rule passage = extend_p, twist_p, release_p, pick_p
+@rule passage = extend_p, twist_p, release_p, pick_p, b_pick_p, b_release_p, b_twist_p
 
 Base.show(io::IO, ::MIME"text/latex", f::Passage) = print(io, "\$", latex(f), "\$")
 
@@ -94,3 +94,62 @@ Base.string(f::TwistPassage) = f.away ? ">$(string(f.arg))" : "<$(string(f.arg))
 latex(f::TwistPassage) = string(f)
 
 (f::TwistPassage)(p::LinearSequence) = twist(p, f.arg, f.away)
+
+
+#### Bilateral Passages
+
+struct BilateralPickPassage <: Passage
+    fun::Tuple{Int,Int}
+    arg::Tuple{Int,Int}
+    near::Bool
+    over::Bool
+    above::Bool
+end
+
+@rule b_fnode = int & ("." & int)[0:1] > (d,l) -> (d, (isempty(l) ? 0 : only(l)[2]))
+@rule b_pick_p = b_fnode & r"[ou]"p & r"a?"p & r"\("p & b_fnode & r"[fn]"p & ")" > (f,ou,a,_,g,fn,_) -> BilateralPickPassage(f,g,fn=="n",ou=="o",a=="a")
+
+_b_string(f) = !iszero(f[2]) ? join(f,".") : string(f[1])
+Base.string(f::BilateralPickPassage) = "$(_b_string(f.fun))$(f.over ? "o" : "u")$(f.above ? "a" : "")($(_b_string(f.arg))$(f.near ? "n" : "f"))"
+function latex(f::BilateralPickPassage)
+    arrow = "\\long$(f.fun <= f.arg ? "right" : "left")arrow"
+    "\\$(f.over ? "over" : "under")set{$arrow}{$(_b_string(f.fun))}\\left($(f.above ? "\\over" : "\\under")line{$(_b_string(f.arg))$(f.near ? "n" : "f")}\\right)"
+end
+function (f::BilateralPickPassage)(p::LinearSequence)
+    p = pick(p, f.over, FrameNode(:L,f.fun), FrameNode(:L,f.arg), f.near, f.above)
+    p = pick(p, f.over, FrameNode(:R,f.fun), FrameNode(:R,f.arg), f.near, f.above)
+end
+
+
+
+struct BilateralReleasePassage <: Passage
+    arg::Tuple{Int,Int}
+end
+
+@rule b_release_p = r"[DN]" & b_fnode > (_,f) -> BilateralReleasePassage(f)
+
+Base.string(f::BilateralReleasePassage) = "D$(_b_string(f.arg))"
+latex(f::BilateralReleasePassage) = "\\square $(_b_string(f.arg))"
+
+function (f::BilateralReleasePassage)(p::LinearSequence)
+    p = release(p, FrameNode(:L, f.arg))
+    p = release(p, FrameNode(:R, f.arg)) 
+end
+
+
+struct BilateralTwistPassage <: Passage
+    arg::Tuple{Int,Int}
+    away::Bool
+end
+
+@rule b_twist_p = r"[<>]" & b_fnode > (t,f) -> BilateralTwistPassage(f, t == ">")
+
+Base.string(f::BilateralTwistPassage) = f.away ? ">$(_b_string(f.arg))" : "<$(_b_string(f.arg))"
+
+latex(f::BilateralTwistPassage) = _b_string(f)
+
+function (f::BilateralTwistPassage)(p::LinearSequence)
+    p = twist(p, FrameNode(:L, f.arg), f.away)
+    p = twist(p, FrameNode(:R, f.arg), f.away)
+end
+
