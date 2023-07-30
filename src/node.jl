@@ -19,12 +19,13 @@ struct FrameNode <: SeqNode
     nodetype::Symbol
     index::Int
     loop::Int
-    function FrameNode(type, idx, loop = 0)
+    function FrameNode(type, idx::Int, loop = 0)
         idx ≥ 0 || throw(ArgumentError("Wrong index $idx"))
         type ∈ (:L, :R) || throw(ArgumentError("Wrong type $type"))
         new(type, idx, loop)
     end
 end
+FrameNode(type, idx::Tuple{Int, Int}) = FrameNode(type, idx...)
 
 SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, idx)
 
