@@ -44,7 +44,7 @@ function iscanonical(p::LinearSequence)
     isnearsidenext(p, p[begin]) && return false
     last = 0
     for j in 2:lastindex(p)
-        if type(p[j]) ∈ (:O, :U)
+        if p[j] isa CrossNode
             if idx(p[j]) > last + 1 
                 return false
             elseif idx(p[j]) > last
@@ -76,7 +76,7 @@ function canonical(p::LinearSequence)
     #rebuild the sequence in canonical order
     map(eachindex(p)) do i
         n = p[rev ? Lpos - i + 1 : Lpos + i - 1]
-        if isframenode(n)
+        if n isa FrameNode
             n
         else
             if !haskey(D, idx(n))
@@ -88,30 +88,32 @@ function canonical(p::LinearSequence)
     end |> LinearSequence
 end
 
+isadjacent(p::LinearSequence, i, j) = abs(i-j) == 1 || abs(i-j) == length(p) - 1
+
 isframenode(n::SeqNode) = n isa FrameNode
 
 findframenode(f::FrameNode,p) = findfirst(==(f), p)
 
-numcrossings(p::LinearSequence) = maximum(idx(n) for n in p if !isframenode(n); init = 0)
+numcrossings(p::LinearSequence) = maximum(idx(n) for n in p if n isa CrossNode; init = 0)
 
 function isfarsidenext(p::LinearSequence, i::Int)
     l, r = i, i
     lset, rset = Set{Int}(), Set{Int}()
     for k in 1:length(p)-1
         n = p[i+k]
-        if isframenode(n) && type(n) != type(p[i])
+        if n isa FrameNode && type(n) != type(p[i])
             r = i+k
             break
-        elseif !isframenode(n)
+        elseif n isa CrossNode
             push!(rset, idx(n)) 
         end
     end
     for k in 1:length(p)-1
         n = p[i-k]
-        if isframenode(n) && type(n) != type(p[i])
+        if n isa FrameNode && type(n) != type(p[i])
             l = i-k
             break
-        elseif !isframenode(n)
+        elseif n isa CrossNode
             push!(lset, idx(n))
         end
     end
@@ -132,8 +134,14 @@ isnearsidenext(p::LinearSequence, n::Union{Int, FrameNode}) = !isfarsidenext(p, 
 Base.iterate(p::LinearSequence) = iterate(p.seq)
 Base.iterate(p::LinearSequence, s) = iterate(p.seq, s)
 Base.getindex(p::LinearSequence, i) = @inbounds p.seq[mod(i,eachindex(p))]
-Base.getindex(p::LinearSequence, i::AbstractVector) = @inbounds p.seq[mod.(i,eachindex(p))]
+Base.setindex!(p::LinearSequence, v, i) = @inbounds p.seq[mod(i,eachindex(p))] = v
+Base.getindex(p::LinearSequence, i::AbstractVector) = @inbounds p.seq[mod.(i,(eachindex(p),))]
 Base.eachindex(p::LinearSequence) = eachindex(p.seq)
 Base.pairs(p::LinearSequence) = pairs(p.seq)
 Base.lastindex(p::LinearSequence) = lastindex(p.seq)
 Base.firstindex(p::LinearSequence) = firstindex(p.seq)
+Base.copy(p::LinearSequence) = LinearSequence(copy(p.seq))
+
+function Base.:(==)(p::LinearSequence, q::LinearSequence)
+    (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)
+end

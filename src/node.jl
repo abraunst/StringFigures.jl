@@ -33,6 +33,7 @@ SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, i
 @rule xnode = "x" & int & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> CrossNode(t == "U" ? :U : :O, d)
 @rule snode = fnode, xnode
 
+inverse(n::CrossNode) = CrossNode(type(n) == :O ? :U : :O, n.index)
 idx(n::SeqNode) = n.index
 idx(n::FrameNode) = (n.index, n.loop)
 loop(n::FrameNode) = n.loop

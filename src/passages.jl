@@ -44,8 +44,8 @@ pointing arrow "↓" if it picks the argument from above (the `above` flag). The
 one `near` the executer or not. 
 """
 struct PickPassage <: Passage
-    fun::SeqNode
-    arg::SeqNode
+    fun::FrameNode
+    arg::FrameNode
     near::Bool
     over::Bool
     above::Bool
@@ -68,10 +68,10 @@ A `ReleasePassage` represents the release of one loop. It is denoted by the "□
 Storer, which we represent in ASCII with "D" (for delete) 
 """
 struct ReleasePassage <: Passage
-    arg::SeqNode
+    arg::FrameNode
 end
 
-@rule release_p = "D" & fnode > (_,f) -> ReleasePassage(f)
+@rule release_p = r"[DN]" & fnode > (_,f) -> ReleasePassage(f)
 
 Base.string(f::ReleasePassage) = "D$(string(f.arg))"
 latex(f::ReleasePassage) = "\\square $(string(f.arg))"
@@ -83,7 +83,7 @@ latex(f::ReleasePassage) = "\\square $(string(f.arg))"
 A `TwistPassage` represents the invertion of one loop
 """
 struct TwistPassage <: Passage
-    arg::SeqNode
+    arg::FrameNode
     away::Bool
 end
 
@@ -94,6 +94,3 @@ Base.string(f::TwistPassage) = f.away ? ">$(string(f.arg))" : "<$(string(f.arg))
 latex(f::TwistPassage) = string(f)
 
 (f::TwistPassage)(p::LinearSequence) = twist(p, f.arg, f.away)
-
-
-

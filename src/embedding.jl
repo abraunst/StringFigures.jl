@@ -1,19 +1,24 @@
 using LinearAlgebra, Graphs, GraphPlot, Colors, Compose, StaticArrays
 
 
+laplacian(A) = Diagonal(vec(sum(A; dims=2))) - A
+
 function tutte_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
-    nfixed = length(vfixed)
     A = adjacency_matrix(g)
     @assert issymmetric(A)
-    n = size(A, 1)
-    A = Float64.(A)
-    K = Diagonal(vec(sum(A; dims=2))) - A
+    K = laplacian(A)
     K[vfixed,:] .= 0
-    K[vfixed,vfixed] = I(nfixed)
-    c = fill(0.0, n, 2)
+    K[vfixed,vfixed] = I(length(vfixed))
+    c = fill(0.0, size(A, 1), 2)
     c[vfixed,:] = locs_fixed
     v = K \ c
-    v[:,1], v[:,2]
+    nrg = 0.0
+    for i in vertices(g)
+        for j in neighbors(g, i)
+            nrg += sqrt((v[i,1]-v[j,1])^2 + (v[i,2]-v[j,2])^2)
+        end
+    end
+    v[:,1], v[:,2], nrg
 end
 
 
@@ -118,6 +123,15 @@ function node_labels_and_fixed_positions(p::LinearSequence)
 end
 
 
+function tension(p::LinearSequence)
+    n, _, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
+    locs_fixed = reduce(vcat, p' for p in pfixed)
+    g = SimpleGraphFromIterator(Iterators.Flatten(
+        ((Edge(Didx[p[i]], n + i),(Edge(n + i, Didx[p[i + 1]])))  for i in eachindex(p))))
+    _, _, nrg = tutte_embedding(g; vfixed, locs_fixed);
+    return nrg
+end
+
 """
 `plot(p::LinearSequence; rfact, k, randomize, labels, shadowc, kwd...)`
 
@@ -132,7 +146,7 @@ Plots `p` using Tutte embedding. Parallel edges are then separated by slightly t
 * `kwd...`:            Additional options for gplot (`(;)`)
 """
 function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, 
-            labels=true, shadowc = HSLA(colorant"black", 0.4), fact=1.0, kwd...)
+            labels=true, shadowc = HSLA(colorant"black", 0.6), fact=1.0, kwd...)
     n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
     index(x) = Didx[x]
  
@@ -190,7 +204,7 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
         EDGELINEWIDTH=0.2*fact, edgestrokec=colorant"white",
         NODESIZE=0.005, nodesize=[i ≤ n ? 1.0 : 0.0 for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
-        NODELABELSIZE=2.0, nodelabel=labels ? vlabels : nothing, nodelabeldist=9, 
+        NODELABELSIZE=2.0, nodelabel=labels ? @view(vlabels[1:nv(gover)]) : nothing, nodelabeldist=9, 
         nodelabelc=colorant"white", kwd...
         )
 

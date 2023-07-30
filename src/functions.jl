@@ -1,7 +1,7 @@
 function release(p::LinearSequence, n::FrameNode)
     dn, ln = idx(n)
     map(filter(!=(n), p.seq)) do m
-        if isframenode(m)
+        if m isa FrameNode
             dm,lm = idx(m)
             type(m) == type(n) && dm == dn && lm > ln ? 
                 FrameNode(type(n), dm, lm - 1) :
@@ -12,8 +12,8 @@ function release(p::LinearSequence, n::FrameNode)
     end |> LinearSequence |> canonical
 end
 
-
-function simplify(p::LinearSequence)
+"ϕ₁ and ϕ₂ simplifications (lemmas 2a and 2b)"
+function simplify12(p::LinearSequence)
     while true
         p = canonical(p)
         isadjacent(i,j) = abs(i - j) ∈ (1, length(p) - 1)
@@ -114,8 +114,8 @@ function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNo
         append!(vnew, newcross[j])
         push!(vnew, p[j])
     end
-    LinearSequence(vnew)
-    #canonical(LinearSequence(vnew))
+    #LinearSequence(vnew)
+    canonical(LinearSequence(vnew))
 end
 
 function pick(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)
@@ -145,7 +145,37 @@ function twist(p::LinearSequence, f::FrameNode, away::Bool)
         p.seq[i+1:end]]))
 end
 
+"ϕ₃ simplifications (lemma 2c)" 
+function simplify3(q::LinearSequence)
+    p = copy(q)
+    ten = tension(p)
+    for i in eachindex(p)
+        if p[i] isa CrossNode && p[i+1] isa CrossNode && 
+            type(p[i]) == type(p[i+1]) && idx(p[i]) != idx(p[i+1])
+            j1 = findfirst(==(inverse(p[i])),p)
+            j2 = findfirst(==(inverse(p[i+1])),p)
+            for (k1,k2) in Iterators.product((j1+1,j1-1),(j2+1,j2-1))
+                if p[k1] isa CrossNode && p[k2] isa CrossNode && 
+                        p[k1] == inverse(p[k2])
+                    p1 = copy(p)
+                    p1[i],p1[i+1] = p1[i+1],p1[i]
+                    p1[j1],p1[k1] = p1[k1],p1[j1]
+                    p1[j2],p1[k2] = p1[k2],p1[j2] 
+                    p1 = simplify12(p1)
+                    tension(p1) < ten  && return p1
+                end
+            end
+        end
+    end
+    return p
+end
 
-function Base.:(==)(p::LinearSequence, q::LinearSequence)
-    (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)
+"Extension-cancellation simplifications"
+function simplify(p::LinearSequence)
+    q = simplify12(p)
+    while true
+        q = simplify3(q)
+        q == p && return q
+        p = q
+    end
 end
