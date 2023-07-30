@@ -48,11 +48,16 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   ```
 * `Passage`s (`passage.jl`). Use it with `pass"xxx"`
   ```julia
-  @rule passage = extend_p, twist_p, release_p, pick_p
+  @rule passage = extend_p, twist_p, release_p, pick_p, b_pick_p, b_release_p, b_twist_p
   @rule extend_p = "|"
   @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"[fn]"p & ")"
   @rule release_p = "D" & fnode
   @rule twist_p = r"[<>]" & fnode
+  @rule b_fnode = int & ("." & int)[0:1]
+  @rule b_pick_p = b_fnode & r"[ou]"p & r"a?"p & r"\("p & b_fnode & r"[fn]"p & ")"
+  @rule b_release_p = r"[DN]" & b_fnode
+  @rule b_twist_p = r"[<>]" & b_fnode
+
   ```
 * `Calculus`s (`calculus.jl`). Use it with `calc"xxx"`
   ```julia
