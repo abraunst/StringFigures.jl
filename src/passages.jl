@@ -2,7 +2,7 @@ using PEG
 
 
 """
-The `Passage` type represents one passage or move in a string figure construction` 
+The `Passage` type represents one passage or move in a string figure construction
 """
 abstract type Passage end
 
@@ -89,7 +89,7 @@ end
 
 @rule twist_p = r"[<>]" & fnode > (t,f) -> TwistPassage(f, t == ">")
 
-Base.string(f::TwistPassage) = f.away ? ">$(string(f.arg))" : "<$(string(f.arg))"
+Base.string(f::TwistPassage) =  "$(f.away ? '>' : '<')$(string(f.arg))"
 
 latex(f::TwistPassage) = string(f)
 
