@@ -6,7 +6,7 @@ The `Passage` type represents one passage or move in a string figure constructio
 """
 abstract type Passage end
 
-@rule passage = extend_p, twist_p, release_p, pick_p, b_pick_p, b_release_p, b_twist_p
+@rule passage = extend_p, twist_p, release_p, navaho_p, pick_p, b_pick_p, b_release_p, b_navaho_p, b_twist_p
 
 Base.show(io::IO, ::MIME"text/latex", f::Passage) = print(io, "\$", latex(f), "\$")
 
@@ -71,12 +71,37 @@ struct ReleasePassage <: Passage
     arg::FrameNode
 end
 
-@rule release_p = r"[DN]" & fnode > (_,f) -> ReleasePassage(f)
+@rule release_p = "D" & fnode > (_,f) -> ReleasePassage(f)
 
 Base.string(f::ReleasePassage) = "D$(string(f.arg))"
 latex(f::ReleasePassage) = "\\square $(string(f.arg))"
 
-(f::ReleasePassage)(p::LinearSequence) = release(p, f.arg)
+function (f::ReleasePassage)(p::LinearSequence)
+    for n in p
+        if type(n) == type(f.arg) && idx(n)[1] == idx(f.arg)[1] && n >= f.arg
+            p = release(p, f.arg)
+        end
+    end
+    return p
+end
+
+"""
+A `NavahoPassage` represents the release of the lower loop in a two-loop finger. 
+It is denoted by the "N" symbol in Storer. 
+"""
+struct NavahoPassage <: Passage
+    arg::FrameNode
+end
+
+@rule navaho_p = "N" & fnode > (_,f) -> NavahoPassage(f)
+
+Base.string(f::NavahoPassage) = "N$(string(f.arg))"
+latex(f::NavahoPassage) = "N$(string(f.arg))"
+
+function (f::NavahoPassage)(p::LinearSequence)
+    navaho(p, f.arg)
+end
+
 
 
 """
@@ -126,7 +151,7 @@ struct BilateralReleasePassage <: Passage
     arg::Tuple{Int,Int}
 end
 
-@rule b_release_p = r"[DN]" & b_fnode > (_,f) -> BilateralReleasePassage(f)
+@rule b_release_p = r"[D]" & b_fnode > (_,f) -> BilateralReleasePassage(f)
 
 Base.string(f::BilateralReleasePassage) = "D$(_b_string(f.arg))"
 latex(f::BilateralReleasePassage) = "\\square $(_b_string(f.arg))"
@@ -135,6 +160,21 @@ function (f::BilateralReleasePassage)(p::LinearSequence)
     p = release(p, FrameNode(:L, f.arg))
     p = release(p, FrameNode(:R, f.arg)) 
 end
+
+struct BilateralNavahoPassage <: Passage
+    arg::Tuple{Int,Int}
+end
+
+@rule b_navaho_p = r"[N]" & b_fnode > (_,f) -> BilateralNavahoPassage(f)
+
+Base.string(f::BilateralNavahoPassage) = "D$(_b_string(f.arg))"
+latex(f::BilateralNavahoPassage) = "\\square $(_b_string(f.arg))"
+
+function (f::BilateralNavahoPassage)(p::LinearSequence)
+    p = navaho(p, FrameNode(:L, f.arg))
+    p = navaho(p, FrameNode(:R, f.arg)) 
+end
+
 
 
 struct BilateralTwistPassage <: Passage
