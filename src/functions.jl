@@ -16,14 +16,16 @@ function navaho(p::LinearSequence, f::FrameNode)
     N = maximum(idx(n) for n in p if n isa CrossNode)
     s = SeqNode[]
     for n in p
-        if n == f
+        if n == FrameNode(type(f), idx(f)[1], idx(f)[2]+1)
             append!(s, isnearsidenext(p, n) ?
                 [CrossNode(:O,N+3), CrossNode(:U,N+2), f, CrossNode(:U,N+1), CrossNode(:O,N+4)] :
-                [CrossNode(:O,N+4), CrossNode(:U,N+1), f, CrossNode(:U,N+2), CrossNode(:O,N+3)])
-        elseif n == FrameNode(type(f), idx(f)[1], idx(f)[2]+1)
+                [CrossNode(:O,N+4), CrossNode(:U,N+1), f, CrossNode(:U,N+2), CrossNode(:O,N+3)]
+            )
+        elseif n == f
             append!(s, isnearsidenext(p, n) ?
-                [CrossNode(:U,N+4), CrossNode(:O,N+1), CrossNode(:O,N+2), CrossNode(:U,N+3)] :
-                [CrossNode(:U,N+3), CrossNode(:O,N+2), CrossNode(:O,N+1), CrossNode(:U,N+4)])
+                [CrossNode(:U,N+4), CrossNode(:U,N+3), CrossNode(:O,N+2), CrossNode(:O,N+1)] :
+                [CrossNode(:O,N+1), CrossNode(:O,N+2), CrossNode(:U,N+3), CrossNode(:U,N+4)]
+            )
         else
             push!(s, n)
         end
