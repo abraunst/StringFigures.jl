@@ -151,7 +151,7 @@ struct BilateralReleasePassage <: Passage
     arg::Tuple{Int,Int}
 end
 
-@rule b_release_p = r"[D]" & b_fnode > (_,f) -> BilateralReleasePassage(f)
+@rule b_release_p = "D" & b_fnode > (_,f) -> BilateralReleasePassage(f)
 
 Base.string(f::BilateralReleasePassage) = "D$(_b_string(f.arg))"
 latex(f::BilateralReleasePassage) = "\\square $(_b_string(f.arg))"
@@ -165,10 +165,10 @@ struct BilateralNavahoPassage <: Passage
     arg::Tuple{Int,Int}
 end
 
-@rule b_navaho_p = r"[N]" & b_fnode > (_,f) -> BilateralNavahoPassage(f)
+@rule b_navaho_p = "N" & b_fnode > (_,f) -> BilateralNavahoPassage(f)
 
-Base.string(f::BilateralNavahoPassage) = "D$(_b_string(f.arg))"
-latex(f::BilateralNavahoPassage) = "\\square $(_b_string(f.arg))"
+Base.string(f::BilateralNavahoPassage) = "N$(_b_string(f.arg))"
+latex(f::BilateralNavahoPassage) = "N$(_b_string(f.arg))"
 
 function (f::BilateralNavahoPassage)(p::LinearSequence)
     p = navaho(p, FrameNode(:L, f.arg))
