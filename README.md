@@ -102,7 +102,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   - i.e. pass $L3$ (away) **over** all intermediate strings and pick up $L5n$ from below
   - this is encoded as `L3o(L5n)`
 - [X] Pick from above
-  [X] Navaho release move
+- [X] Navaho release move
 - [X] $\phi_3$ passages and heuristics to decide when to apply it
 - [ ] Pick with non-standard arguments
 - [x] Multiple loops in a single Ln or Rn
