@@ -85,7 +85,7 @@ function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNo
     f = FrameNode(type(f), idx(f)[1], k)
 
     i = findframenode(arg, p) 
-    !isnothing(i) || throw(ArgumentError("Non existing argument"))
+    isnothing(i) && throw(ArgumentError("Non existing argument"))
     newcross = [SeqNode[] for _ in eachindex(p)]
     function addpair(x, U, b)
         append!(newcross[mod(x, eachindex(p))], 
@@ -166,7 +166,7 @@ function twist(p::LinearSequence, f::FrameNode, away::Bool)
         p.seq[i+1:end]]))
 end
 
-"ϕ₃ simplifications (lemma 2c)" 
+"ϕ₃ simplifications (lemma 2c), based on string total length/tension" 
 function simplify3(q::LinearSequence)
     p = copy(q)
     ten = tension(p)

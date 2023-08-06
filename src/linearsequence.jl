@@ -88,7 +88,7 @@ function canonical(p::LinearSequence)
     end |> LinearSequence
 end
 
-isadjacent(p::LinearSequence, i, j) = abs(i-j) == 1 || abs(i-j) == length(p) - 1
+isadjacent(p::LinearSequence, i, j) = abs(i-j) ∈ (1,length(p) - 1)
 
 isframenode(n::SeqNode) = n isa FrameNode
 
@@ -101,20 +101,20 @@ function isfarsidenext(p::LinearSequence, i::Int)
     lset, rset = Set{Int}(), Set{Int}()
     for k in 1:length(p)-1
         n = p[i+k]
-        if n isa FrameNode && type(n) != type(p[i])
+        if n isa CrossNode
+            push!(rset, idx(n)) 
+        elseif type(n) != type(p[i])
             r = i+k
             break
-        elseif n isa CrossNode
-            push!(rset, idx(n)) 
         end
     end
     for k in 1:length(p)-1
         n = p[i-k]
-        if n isa FrameNode && type(n) != type(p[i])
+        if n isa CrossNode
+            push!(lset, idx(n))
+        elseif type(n) != type(p[i])
             l = i-k
             break
-        elseif n isa CrossNode
-            push!(lset, idx(n))
         end
     end
 
