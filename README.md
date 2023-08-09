@@ -56,7 +56,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule twist_p = r"[<>]" & fnode
   @rule b_fnode = int & ("." & int)[0:1]
   @rule b_pick_p = b_fnode & r"[ou]"p & r"a?"p & r"\("p & b_fnode & r"[fn]"p & ")"
-  @rule b_release_p = r"[DN]" & b_fnode
+  @rule b_release_p = "N" & b_fnode
   @rule b_twist_p = r"[<>]" & b_fnode
   @rule b_navaho_p = "N" & b_fnode
 
