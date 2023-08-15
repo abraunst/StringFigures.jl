@@ -62,6 +62,35 @@ end
 
 (f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near, f.above)
 
+"""
+A `MultiPickPassage` represents the action of picking a string with a given functor. 
+Its arguments are:
+- `pass::Vector{PickPassage}` : the argument (i.e. the finger holding the section of string being picked)
+"""
+struct MultiPickPassage <: Passage
+    seq::Vector{PickPassage}
+end
+
+@rule pick_pp = pick_p & r":"p > (f,_) -> f 
+@rule multi_pick_p = pick_pp[1:end] & pick_p > (v,x)->MultiPickPassage(push!(v, x))
+
+function (f::MultiPickPassage)(p::LinearSequence)
+    for i in length(f.seq)-1:-1:1
+    end
+end
+
+
+function latex(ff::MultiPickPassage)
+    map(ff.seq) do f 
+        arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(idx(f.fun) <= idx(f.arg) ? "right" : "left")arrow"
+        "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}{$(string(f.arg))$(f.near ? "n" : "f")\\right)"
+    end |> x->join(x, ":")
+end
+
+Base.string(f::MultiPickPassage) = join(string.(f.seq), ":")
+
+
+
 
 """
 A `ReleasePassage` represents the release of one loop. It is denoted by the "□" symbol in 
