@@ -141,6 +141,7 @@ Base.pairs(p::LinearSequence) = pairs(p.seq)
 Base.lastindex(p::LinearSequence) = lastindex(p.seq)
 Base.firstindex(p::LinearSequence) = firstindex(p.seq)
 Base.copy(p::LinearSequence) = LinearSequence(copy(p.seq))
+Base.mod(i, p::LinearSequence) = mod(i, eachindex(p))
 
 function Base.:(==)(p::LinearSequence, q::LinearSequence)
     (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)
