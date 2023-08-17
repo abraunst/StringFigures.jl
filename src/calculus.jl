@@ -102,10 +102,10 @@ end
 
 Base.length(p::StringProcedure) = length(p.calculus) + 1
 
-function plot(p::StringProcedure)
+function plot(p::StringProcedure; kwd...)
     for (i,l) in enumerate(p)
         display(i == 1 ? p : p.calculus.seq[i-1])
-        display(plot(l))
+        display(plot(l; kwd...))
     end
 end
 
