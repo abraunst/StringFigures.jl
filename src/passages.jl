@@ -77,12 +77,9 @@ Base.string(f::ReleasePassage) = "D$(string(f.arg))"
 latex(f::ReleasePassage) = "\\square $(string(f.arg))"
 
 function (f::ReleasePassage)(p::LinearSequence)
-    for n in p
-        if type(n) == type(f.arg) && idx(n)[1] == idx(f.arg)[1] && n >= f.arg
-            p = release(p, f.arg)
-        end
+    delete(p) do n
+        type(n) == type(f.arg) && idx(n)[1] == idx(f.arg)[1] && n >= f.arg
     end
-    return p
 end
 
 """
@@ -157,8 +154,9 @@ Base.string(f::BilateralReleasePassage) = "D$(_b_string(f.arg))"
 latex(f::BilateralReleasePassage) = "\\square $(_b_string(f.arg))"
 
 function (f::BilateralReleasePassage)(p::LinearSequence)
-    p = release(p, FrameNode(:L, f.arg))
-    p = release(p, FrameNode(:R, f.arg)) 
+    delete(p) do n
+        n isa FrameNode && idx(n)[1] == f.arg[1] && idx(n)[2] >= f.arg[2]
+    end
 end
 
 struct BilateralNavahoPassage <: Passage

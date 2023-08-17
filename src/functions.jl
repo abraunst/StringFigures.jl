@@ -1,15 +1,7 @@
-function release(p::LinearSequence, n::FrameNode)
-    dn, ln = idx(n)
-    map(filter(!=(n), p.seq)) do m
-        if m isa FrameNode
-            dm,lm = idx(m)
-            type(m) == type(n) && dm == dn && lm > ln ? 
-                FrameNode(type(n), dm, lm - 1) :
-                m
-        else
-            m
-        end
-    end |> LinearSequence |> canonical
+release(p::LinearSequence, f::FrameNode) = delete(==(f), p)
+
+function delete(g::Function, p::LinearSequence)
+    filter(!g, p.seq) |> LinearSequence |> canonical
 end
 
 function navaho(p::LinearSequence, f::FrameNode)
