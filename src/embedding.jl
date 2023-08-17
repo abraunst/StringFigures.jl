@@ -82,11 +82,11 @@ function node_labels_and_fixed_positions(p::LinearSequence)
     D = Dict{SeqNode, Int}()
     function pos(n::FrameNode)
         id,l = idx(n)
-        θ = [-π/2; 0.0:π/6:π/2]
+        θ = [-π/4; 0.0:π/12:π/4]
         if type(n) == :L
-            SVector(-0.5*cos(θ[id]+l*π/18), -sin(θ[id]+l*π/18))
+            SVector(-0.5*cos(θ[id]+l*π/36), -sin(θ[id]+l*π/36))
         else
-            SVector(0.5*cos(θ[id]+l*π/18) + 3, -sin(θ[id]+l*π/18))
+            SVector(0.5*cos(θ[id]+l*π/36) + 3, -sin(θ[id]+l*π/36))
         end
     end
 
