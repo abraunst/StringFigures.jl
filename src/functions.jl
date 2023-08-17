@@ -67,10 +67,20 @@ function simplify12(p::LinearSequence)
     return canonical(p)
 end
 
+
 function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool)
-    @assert type(f) == type(arg) # only on the same side
     k = 1 + maximum(loop(n) for n in p if type(n) == type(f) && idx(n)[1] == idx(f)[1]; init=-1)
     f = FrameNode(type(f), idx(f)[1], k)
+    path = build_path(p, over, f, arg, near)
+    i = findframenode(arg, p) 
+    isnothing(i) && throw(ArgumentError("Non existing argument"))
+    argnext = (near == isnearsidenext(p, i))
+    pick_path(p, f, path, i, argnext)
+end
+
+
+function build_path(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool)
+    @assert type(f) == type(arg) # only on the same side
 
     i = findframenode(arg, p) 
     isnothing(i) && throw(ArgumentError("Non existing argument"))
@@ -99,7 +109,7 @@ function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNo
         push!(path, (mod(j + cnext, p), cnext, U))
         push!(path, (mod(j + !cnext, p), !cnext, U))
     end
-    pick_path(p, f, path, i, argnext)
+    return path
 end
 
 function pick_path(p, f, path, i, argnext)
