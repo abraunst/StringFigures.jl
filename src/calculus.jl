@@ -46,9 +46,9 @@ function Base.string(s::StringCalculus)
     end |> join
 end
 
-function latex(s::StringCalculus)
+function latex(s::StringCalculus; idx = 0)
     l = map(eachindex(s.seq)) do i
-        o = latex(s.seq[i])
+        o = (i == idx ? "{\\color{blue}" : "{")*latex(s.seq[i])*"}"
         s.seq[i] isa ExtendPassage && return o * " "
         i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage && return o
         o * "\\# "
@@ -82,11 +82,20 @@ macro proc_str(s)
     parsepeg(procedure, s)
 end
 
-function latex(p::StringProcedure)
-    ini = p.initial == _O1 ? "O1" :
-        p.initial == _OA ? "OA" :
-        string(p.initial)
-    "$ini~::~$(latex(p.calculus))"
+function latex(p::StringProcedure; idx=-1)
+    ini =  p.initial == _O1 ? "O1" :
+            p.initial == _OA ? "OA" :
+            string(p.initial)
+    "{$(idx == 0 ? "\\blue{" : "{ ")$ini}}~::~$(latex(p.calculus; idx))"
+end
+
+struct IndexedProcedure
+    p::StringProcedure
+    idx::Int
+end
+
+function Base.show(io::IO, ::MIME"text/latex", p::IndexedProcedure)
+    print(io, "\$", latex(p.p; idx=p.idx), "\$")
 end
 
 function Base.show(io::IO, ::MIME"text/latex", p::StringProcedure)
@@ -104,7 +113,7 @@ Base.length(p::StringProcedure) = length(p.calculus) + 1
 
 function plot(p::StringProcedure; kwd...)
     for (i,l) in enumerate(p)
-        display(i == 1 ? p : p.calculus.seq[i-1])
+        display(IndexedProcedure(p, i-1))
         display(plot(l; kwd...))
     end
 end
