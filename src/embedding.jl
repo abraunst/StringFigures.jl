@@ -117,7 +117,7 @@ function node_labels_and_fixed_positions(p::LinearSequence)
 end
 
 
-function tension(p::LinearSequence; k=0.3)
+function tension(p::LinearSequence; k=0.5)
     n, _, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
     locs_fixed = reduce(vcat, p' for p in pfixed)
     g = SimpleGraphFromIterator(Iterators.Flatten(
