@@ -12,13 +12,7 @@ function tutte_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
     c = fill(0.0, size(A, 1), 2)
     c[vfixed,:] = locs_fixed
     v = K \ c
-    nrg = 0.0
-    for i in vertices(g)
-        for j in neighbors(g, i)
-            nrg += sqrt((v[i,1]-v[j,1])^2 + (v[i,2]-v[j,2])^2)
-        end
-    end
-    v[:,1], v[:,2], nrg
+    v[:,1], v[:,2]
 end
 
 
@@ -123,12 +117,18 @@ function node_labels_and_fixed_positions(p::LinearSequence)
 end
 
 
-function tension(p::LinearSequence)
+function tension(p::LinearSequence; k=0.3)
     n, _, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
     locs_fixed = reduce(vcat, p' for p in pfixed)
     g = SimpleGraphFromIterator(Iterators.Flatten(
         ((Edge(Didx[p[i]], n + i),(Edge(n + i, Didx[p[i + 1]])))  for i in eachindex(p))))
-    _, _, nrg = tutte_embedding(g; vfixed, locs_fixed);
+    x, y = tutte_embedding(g; vfixed, locs_fixed);
+    nrg = 0.0
+    for i in vertices(g)
+        for j in neighbors(g, i)
+            nrg += ((x[i]-x[j])^2 + (y[i]-y[j])^2)^k
+        end
+    end
     return nrg
 end
 
