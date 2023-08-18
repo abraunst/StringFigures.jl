@@ -18,4 +18,6 @@ end
     @test O1 == proc"O1::" |> only
     @test OA == proc"OA::" |> only
     @test pass"R2o(L1f)"(O1) == proc"O1::R2o(L1f)" |> last
+    @test proc"O1::>L1#D1|" |> last == proc"O1::D1|" |> last
+    @test proc"O1::1o(5f)#NL1#DL1|" |> last == proc"O1::1o(5f)#DL1|" |> last
 end
