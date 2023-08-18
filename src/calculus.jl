@@ -48,7 +48,7 @@ end
 
 function latex(s::StringCalculus; idx = 0)
     l = map(eachindex(s.seq)) do i
-        o = (i == idx ? "{\\color{blue}" : "{")*latex(s.seq[i])*"}"
+        o = (i == idx ? "\\blue{" : "{")*latex(s.seq[i])*"}"
         s.seq[i] isa ExtendPassage && return o * " "
         i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage && return o
         o * "\\# "
