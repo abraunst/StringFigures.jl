@@ -33,9 +33,7 @@ function gaussish_code(p::LinearSequence)
     end
 end
 
-function Base.show(io::IO, p::LinearSequence)
-    print(io, "seq\"", join(string.(p.seq),":"), "\"")
-end
+
 
 ### equivalent to canonical(p).seq == p.seq but faster and non-allocating
 function iscanonical(p::LinearSequence)
@@ -92,8 +90,18 @@ isadjacent(p::LinearSequence, i, j) = abs(i-j) ∈ (1,length(p) - 1)
 
 isframenode(n::SeqNode) = n isa FrameNode
 
-function findframenode(f::FrameNode,p)
-    i = findfirst(==(f), p)
+function findframenode(f::FrameNode, p)
+    i,u = 0,0
+    for (j,n) in pairs(p)
+        if type(f) == type(n) && idx(f)[1] == idx(n)[1]
+            if idx(f)[2] == typemax(Int) && idx(n)[2] > u
+                u = idx(n)[2]
+                i = j
+            elseif idx(n)[2] == idx(f)[2]
+                i = j
+            end
+        end
+    end
     isnothing(i) && throw(ArgumentError("Non existing argument"))
     return i
 end
@@ -150,3 +158,21 @@ Base.mod(i, p::LinearSequence) = mod(i, eachindex(p))
 function Base.:(==)(p::LinearSequence, q::LinearSequence)
     (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)
 end
+
+
+function Base.show(io::IO, ::MIME"text/plain", p::LinearSequence)
+    io = IOContext(io, :linseq => p)
+    print(io, "seq\"")
+    show(io, p)
+    print(io,"\"")
+end
+
+function Base.show(io::IO, p::LinearSequence)
+    io = IOContext(io, :linseq => p)
+    for n in p[1:end-1]
+        show(io, n)
+        print(io,":")
+    end
+    show(io, p[end])
+end
+

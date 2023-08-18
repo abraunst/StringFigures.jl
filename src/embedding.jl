@@ -94,13 +94,17 @@ function node_labels_and_fixed_positions(p::LinearSequence)
     vfixed = Int[]
     pfixed = fill(SVector(0.,0.), 0)
     vlabels = String[]
+    io = IOBuffer()
+    ioc = IOContext(io, :linseq => p)
     for n in p
         if isframenode(n)
+            show(ioc, n)
+            s = String(take!(io))
             if !haskey(D, n)
                 i +=1; D[n] = i
                 push!(vfixed, i)
                 push!(pfixed, pos(n))
-                push!(vlabels, string(n))
+                push!(vlabels, s)
                 #@show vlabels[end] pfixed[end]
             end
         else
