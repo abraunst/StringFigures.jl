@@ -92,7 +92,11 @@ isadjacent(p::LinearSequence, i, j) = abs(i-j) ∈ (1,length(p) - 1)
 
 isframenode(n::SeqNode) = n isa FrameNode
 
-findframenode(f::FrameNode,p) = findfirst(==(f), p)
+function findframenode(f::FrameNode,p)
+    i = findfirst(==(f), p)
+    isnothing(i) && throw(ArgumentError("Non existing argument"))
+    return i
+end
 
 numcrossings(p::LinearSequence) = maximum(idx(n) for n in p if n isa CrossNode; init = 0)
 
@@ -141,6 +145,7 @@ Base.pairs(p::LinearSequence) = pairs(p.seq)
 Base.lastindex(p::LinearSequence) = lastindex(p.seq)
 Base.firstindex(p::LinearSequence) = firstindex(p.seq)
 Base.copy(p::LinearSequence) = LinearSequence(copy(p.seq))
+Base.mod(i, p::LinearSequence) = mod(i, eachindex(p))
 
 function Base.:(==)(p::LinearSequence, q::LinearSequence)
     (iscanonical(p) ? p.seq : canonical(p).seq) == (iscanonical(q) ? q.seq : canonical(q).seq)

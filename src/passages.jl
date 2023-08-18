@@ -6,7 +6,7 @@ The `Passage` type represents one passage or move in a string figure constructio
 """
 abstract type Passage end
 
-@rule passage = extend_p, twist_p, release_p, navaho_p, pick_p, b_pick_p, b_release_p, b_navaho_p, b_twist_p
+@rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p, b_multi_pick_p, b_pick_p, b_release_p, b_navaho_p, b_twist_p
 
 Base.show(io::IO, ::MIME"text/latex", f::Passage) = print(io, "\$", latex(f), "\$")
 
@@ -61,6 +61,36 @@ function latex(f::PickPassage)
 end
 
 (f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near, f.above)
+
+"""
+A `MultiPickPassage` represents the action of picking a string with a given functor. 
+Its arguments are:
+- `pass::Vector{PickPassage}` : the argument (i.e. the finger holding the section of string being picked)
+"""
+struct MultiPickPassage <: Passage
+    seq::Vector{PickPassage}
+end
+
+@rule pick_pp = pick_p & r":"p > (f,_) -> f 
+@rule multi_pick_p = pick_pp[1:end] & pick_p > (v,x)->MultiPickPassage(push!(v, x))
+
+function (f::MultiPickPassage)(p::LinearSequence)
+    fun = f.seq[1].fun
+    @assert all(==(fun), (x.fun for x in f.seq))
+    pick(p, fun, [(x.arg, x.near, x.over) for x in f.seq], f.seq[end].above)
+end
+
+
+function latex(ff::MultiPickPassage)
+    map(ff.seq) do f 
+        arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(idx(f.fun) <= idx(f.arg) ? "right" : "left")arrow"
+        "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}\\left($(string(f.arg))$(f.near ? "n" : "f")\\right)"
+    end |> x->join(x, ":")
+end
+
+Base.string(f::MultiPickPassage) = join(string.(f.seq), ":")
+
+
 
 
 """
@@ -119,6 +149,25 @@ latex(f::TwistPassage) = string(f)
 
 
 #### Bilateral Passages
+struct BilateralMultiPickPassage <: Passage
+    fun::Tuple{Int,Int}
+    args::Vector{Tuple{Int,Int,Bool,Bool}}
+    above::Bool
+end
+
+function (f::BilateralMultiPickPassage)(p::LinearSequence)
+    p = pick(p, FrameNode(:L, f.fun), [(FrameNode(:L, (i,j)),fn,ou) for (i,j,fn,ou) in f.args], f.above)
+    p = pick(p, FrameNode(:R, f.fun), [(FrameNode(:R, (i,j)),fn,ou) for (i,j,fn,ou) in f.args], f.above)
+end
+
+function latex(f::BilateralMultiPickPassage)
+    join([latex(BilateralPickPassage(f.fun, (j1,j2), near, over,f.above)) for (j1,j2,near,over) in f.args], ":")
+end
+
+function Base.string(f::BilateralMultiPickPassage)
+    join([string(BilateralPickPassage(f.fun, (j1,j2), near, over,f.above)) for (j1,j2,near,over) in f.args], ":")
+end
+
 
 struct BilateralPickPassage <: Passage
     fun::Tuple{Int,Int}
@@ -131,6 +180,10 @@ end
 @rule b_fnode = int & ("." & int)[0:1] > (d,l) -> (d, (isempty(l) ? 0 : only(l)[2]))
 @rule b_pick_p = b_fnode & r"[ou]"p & r"a?"p & r"\("p & b_fnode & r"[fn]"p & ")" > (f,ou,a,_,g,fn,_) -> BilateralPickPassage(f,g,fn=="n",ou=="o",a=="a")
 
+@rule b_mpick_p1 = b_fnode & r"[ou]"p & r"\("p & b_fnode & r"[fn]"p & ")" > (_,ou,_,(a1,a2),fn,_)->(a1,a2,ou == "o",fn == "n")
+@rule b_multi_pick_p = (b_mpick_p1 & r":"p)[0:end] & b_pick_p > (v,b)-> BilateralMultiPickPassage(b.fun, [[x[1] for x in v]; [(b.arg..., b.near, b.over)]], b.above)
+
+
 _b_string(f) = !iszero(f[2]) ? join(f,".") : string(f[1])
 Base.string(f::BilateralPickPassage) = "$(_b_string(f.fun))$(f.over ? "o" : "u")$(f.above ? "a" : "")($(_b_string(f.arg))$(f.near ? "n" : "f"))"
 function latex(f::BilateralPickPassage)
@@ -141,8 +194,6 @@ function (f::BilateralPickPassage)(p::LinearSequence)
     p = pick(p, f.over, FrameNode(:L,f.fun), FrameNode(:L,f.arg), f.near, f.above)
     p = pick(p, f.over, FrameNode(:R,f.fun), FrameNode(:R,f.arg), f.near, f.above)
 end
-
-
 
 struct BilateralReleasePassage <: Passage
     arg::Tuple{Int,Int}

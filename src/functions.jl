@@ -62,62 +62,88 @@ function simplify12(p::LinearSequence)
             end        
         end
         isempty(rem) && break
-        #@show rem
         deleteat!(p.seq, sort!(rem))
     end
     return canonical(p)
 end
 
-
 function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool)
+    pick_sameside(p, f, [(arg, near, over)])
+end
+
+function pick_sameside(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}})
+    arg, near, _ = args[end]
     @assert type(f) == type(arg) # only on the same side
-    nold = numcrossings(p) 
-    n = nold + 1
     k = 1 + maximum(loop(n) for n in p if type(n) == type(f) && idx(n)[1] == idx(f)[1]; init=-1)
     f = FrameNode(type(f), idx(f)[1], k)
-
+    path = build_path(p, f, args)
     i = findframenode(arg, p) 
-    isnothing(i) && throw(ArgumentError("Non existing argument"))
-    newcross = [SeqNode[] for _ in eachindex(p)]
-    function addpair(x, U, b)
-        append!(newcross[mod(x, eachindex(p))], 
-            (CrossNode(U, n + b), CrossNode(U, n + !b)))
-        #println("adding pair ", newcross[mod(x, eachindex(p))], " at pos $x($(p[x-1])↓$(p[x]))" )
-        n += 2
-    end
-    (U, O) = over ? (:U, :O) : (:O, :U)
+    argnext = (near == isnearsidenext(p, i))
+    pick_path(p, f, path, i, argnext)
+end
+
+function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}})
+    a = length(args)
+    arg, near, over = args[a]
+
+    a -= 1
+    i = findframenode(arg, p) 
+    path = Tuple{Int, Bool, Symbol}[]
 
     # is the functor below the arg?
     fbelow = idx(f) < idx(arg)
     # is the arg of the functor on the right of i in the seq?
     argnext = (near == isnearsidenext(p, i))
-    # @show argnext
+
     # eventual crossing in the arg node 
     if fbelow != near
-        addpair(i + !argnext, U, !argnext)
+        push!(path, (mod(i + !argnext, p), !argnext, over ? :U : :O))
+        if a > 0 && p[i] == args[a][1] && !near == args[a][2]
+            arg, near, over = args[a]
+            a -= 1
+        end
     end
 
-    middle = [(idx(n),j) for (j,n) in pairs(p) if p[j] != f && p[j] != arg && 
-        type(p[j]) == type(f) && (idx(p[j]) < idx(f)) != (idx(p[j]) < idx(arg))]
+    middle = [(idx(n),j) for (j,n) in pairs(p) if n != f && n != arg && 
+        type(n) == type(f) && (idx(n) < idx(f)) != (idx(n) < idx(arg))]
     sort!(middle; rev=fbelow)
-
-    #@show [p[j] for (_,j) in middle]
 
     for (_,j) in middle
         # intermediate active frame node
         farnext = isfarsidenext(p, j)  
         # are the first two new crossings on the right of j in the seq?
         cnext = (fbelow == farnext)
-        addpair(j + cnext, U, cnext)
-        addpair(j + !cnext, U, !cnext)
+
+        push!(path, (mod(j + cnext, p), cnext, over ? :U : :O))
+        if a > 0 && p[j] == args[a][1] && fbelow != args[a][2]
+            arg, near, over = args[a]
+            a -= 1
+        end
+
+        push!(path, (mod(j + !cnext, p), !cnext, over ? :U : :O))
+        if a > 0 && p[j] == args[a][1] && fbelow == args[a][2]
+            arg, near, over = args[a]
+            a -= 1
+        end
     end
-    #cnext = (fbelow == isfarsidenext(p, i))
+    return path
+end
+
+function pick_path(p, f, path, i, argnext)
+    newcross = [SeqNode[] for _ in p]
+    nold = numcrossings(p) 
+    nnew = nold + 1
+
+    for (x, b, u) in path
+        push!(newcross[x], CrossNode(u, nnew +  b))
+        push!(newcross[x], CrossNode(u, nnew + !b))
+        nnew += 2
+    end
     # add spike
     c = Iterators.flatten((
-        (CrossNode(O, j) for j in nold+1:2:n-2),
+        (CrossNode(path[j][3] == :U ? :O : :U, 2j - 1 + nold) for j in eachindex(path)),
         (f,),
-        (CrossNode(O, j) for j in n-1:-2:nold+2)))
-    #@show newcross
+        (CrossNode(path[j][3] == :U ? :O : :U, 2j + nold) for j in reverse(eachindex(path)))))
     append!(newcross[mod(i + argnext, eachindex(p))],
             !argnext ? c : Iterators.reverse(c)) 
 
@@ -130,12 +156,16 @@ function pick_sameside(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNo
     #LinearSequence(vnew)
     canonical(LinearSequence(vnew))
 end
-
 function pick(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)
-    type(f) == type(arg) && return pick_sameside(p, over, f, arg, near)
+    pick(p, f, [(arg,near,over)], above)
+end
+
+function pick(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode, Bool, Bool}}, above::Bool=false)
+    arg, near, over = args[end]
+    type(f) == type(arg) && return pick_sameside(p, f, args)
     extra = idx(f) > idx(arg) ? (0,0) : (6,0) ## check
     farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
-    p = pick_sameside(p, over, farg, arg, near)
+    p = pick_sameside(p, farg, args)
     p.seq[findframenode(farg, p)] = ffun
     #println(p)
     p = pick_sameside(p, over, f, ffun, idx(f) < extra)
