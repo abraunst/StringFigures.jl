@@ -18,15 +18,17 @@ end
 An `ExtendPassage` represents the extension of the string in order to make it taut. 
 It has no arguments. Represented in Storer with the symbol "|".
 """
-struct ExtendPassage <: Passage end
+struct ExtendPassage <: Passage 
+    k::Int
+end
 
-@rule extend_p = "|" > _ -> ExtendPassage()
+@rule extend_p = "|" & r"!*"p > (_, x) -> ExtendPassage(length(x))
 
-Base.string(f::ExtendPassage) = "|"
+Base.string(f::ExtendPassage) = "|"*"!"^f.k
 
-latex(f::ExtendPassage) = "|"
+latex(f::ExtendPassage) = "|"*"!"^f.k
 
-(f::ExtendPassage)(p::LinearSequence) = simplify(p)
+(f::ExtendPassage)(p::LinearSequence) = simplify(p, 1/(k+2))
 
 """
 A `PickPassage` represents the action of picking a string with a given functor. 
