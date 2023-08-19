@@ -28,7 +28,7 @@ Base.string(f::ExtendPassage) = "|"*"!"^f.k
 
 latex(f::ExtendPassage) = "|"*"!"^f.k
 
-(f::ExtendPassage)(p::LinearSequence) = simplify(p, 1/(k+2))
+(f::ExtendPassage)(p::LinearSequence) = simplify(p; k=1/(f.k+2))
 
 """
 A `PickPassage` represents the action of picking a string with a given functor. 
