@@ -189,7 +189,7 @@ function twist(p::LinearSequence, f::FrameNode, away::Bool)
 end
 
 "ϕ₃ simplifications (lemma 2c), based on string total length/tension" 
-function simplify3(q::LinearSequence)
+function simplify3(q::LinearSequence; k=0.5)
     p = copy(q)
     ten = tension(p)
     for i in eachindex(p)
@@ -205,7 +205,7 @@ function simplify3(q::LinearSequence)
                     p1[j1],p1[k1] = p1[k1],p1[j1]
                     p1[j2],p1[k2] = p1[k2],p1[j2] 
                     p1 = simplify12(p1)
-                    tension(p1) < ten  && return p1
+                    tension(p1; k) < ten  && return p1
                 end
             end
         end
@@ -214,10 +214,10 @@ function simplify3(q::LinearSequence)
 end
 
 "Extension-cancellation simplifications"
-function simplify(p::LinearSequence)
+function simplify(p::LinearSequence; k=0.5)
     q = simplify12(p)
     while true
-        q = simplify3(q)
+        q = simplify3(q; k)
         q == p && return q
         p = q
     end
