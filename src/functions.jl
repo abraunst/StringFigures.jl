@@ -79,16 +79,20 @@ function pick_sameside(p::LinearSequence, f::FrameNode, args::Vector{Tuple{Frame
     path = build_path(p, f, args)
     i = findframenode(arg, p) 
     argnext = (near == isnearsidenext(p, i))
-    pick_path(p, f, path, i, argnext)
+    pick_path(p, f, i, argnext, path)
 end
 
+"""
+Builds path from `f` to `args[end]` close to the fingers, with under/over switching at 
+intermediate steps.
+"""
 function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}})
     a = length(args)
     arg, near, over = args[a]
 
     a -= 1
     i = findframenode(arg, p)
-    path = Tuple{Int, Bool, Symbol}[]
+    path = Tuple{Int, Bool, Bool}[]
 
     # is the functor below the arg?
     fbelow = idx(f) < idx(arg)
@@ -97,7 +101,7 @@ function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNod
 
     # eventual crossing in the arg node 
     if fbelow != near
-        push!(path, (i, !argnext, over ? :O : :U))
+        push!(path, (i, !argnext, over))
         if a > 0 && p[i] == args[a][1] && near != args[a][2]
             arg, near, over = args[a]
             a -= 1
@@ -114,13 +118,13 @@ function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNod
         # are the first two new crossings on the right of j in the seq?
         cnext = (fbelow == farnext)
 
-        push!(path, (j, cnext, over ? :O : :U))
+        push!(path, (j, cnext, over))
         if a > 0 && p[j] == args[a][1] && fbelow != args[a][2]
             arg, near, over = args[a]
             a -= 1
         end
 
-        push!(path, (j, !cnext, over ? :O : :U))
+        push!(path, (j, !cnext, over))
         if a > 0 && p[j] == args[a][1] && fbelow == args[a][2]
             arg, near, over = args[a]
             a -= 1
@@ -129,24 +133,30 @@ function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNod
     return path
 end
 
-function pick_path(p, f, path, i, argnext)
+"""
+Makes a complex pick by functor `f`` of segment `(i,bi)` through
+all segments in `path`, each one identified by `(j,bj,o)` where `o` determines 
+if the pick passes over the corresponding segment. Here segment `(j,bj)` is the 
+segment going from `p[j]` to `p[j+bj]`.
+"""
+function pick_path(p, f, i, bi, path)
     before = [SeqNode[] for _ in p]
     after = [SeqNode[] for _ in p]
     nold = numcrossings(p) 
     nnew = nold + 1
 
-    for (x, b, u) in path
-        push!((b ? after : before)[x], CrossNode(u == :U ? :O : :U, nnew +  b))
-        push!((b ? after : before)[x], CrossNode(u == :U ? :O : :U, nnew + !b))
+    for (j, bj, oj) in path
+        push!((bj ? after : before)[j], CrossNode(oj ? :U : :O, nnew +  bj))
+        push!((bj ? after : before)[j], CrossNode(oj ? :U : :O, nnew + !bj))
         nnew += 2
     end
     # add spike
     c = Iterators.flatten((
-        (CrossNode(u, 2j - 1 + nold) for (j,(_,_,u)) in pairs(path)),
+        (CrossNode(oj ? :O : :U, 2x - 1 + nold) for (x,(_,_,oj)) in pairs(path)),
         (f,),
-        (CrossNode(u, 2j     + nold) for (j,(_,_,u)) in Iterators.reverse(pairs(path)))))
+        (CrossNode(oj ? :O : :U, 2x + nold) for (x,(_,_,oj)) in Iterators.reverse(pairs(path)))))
 
-    append!((argnext ? after : before)[i], !argnext ? c : Iterators.reverse(c)) 
+    append!((bi ? after : before)[i], !bi ? c : Iterators.reverse(c)) 
 
     # build new linear sequence inserting all new crossings 
     vnew = SeqNode[]
