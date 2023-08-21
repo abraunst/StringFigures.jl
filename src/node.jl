@@ -2,8 +2,6 @@ using PEG
 
 ####### Nodes in a linear sequence
 
-_UPPER = typemax(Int)
-
 abstract type SeqNode end
 
 struct CrossNode <: SeqNode
