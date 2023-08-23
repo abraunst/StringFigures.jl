@@ -35,25 +35,35 @@ Base.:(^)(s::StringCalculus, k::Integer) = StringCalculus(reduce(vcat, (s.seq fo
 
 Base.show(io::IO, s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), " # "), "\"")
 
-Base.show(io::IO, ::MIME"text/latex", s::StringCalculus) = print(io, "\$", latex(s), "\$")
-
-function Base.string(s::StringCalculus)
-    map(eachindex(s.seq)) do i
+function Base.show(io::IO, ::MIME"text/plain", s::StringCalculus)
+    t = map(eachindex(s.seq)) do i
         o = string(s.seq[i])
         s.seq[i] isa ExtendPassage && return o
         i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage && return o
         return o * "#"
     end |> join
+    print(io, t)
 end
 
-function latex(s::StringCalculus; idx = 0)
-    l = map(eachindex(s.seq)) do i
-        o = (i == idx ? "\\blue{" : "{")*latex(s.seq[i])*"}"
-        s.seq[i] isa ExtendPassage && return o * " "
-        i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage && return o
-        o * "\\# "
+function Base.show(io::IO, m::MIME"text/latex", s::StringCalculus) 
+    idx = get(io, :passidx, -1)::Int
+    inmath = get(io, :inmath, false)::Bool
+    if !inmath 
+        print(io, "\$")
+        io = IOContext(io, :inmath => true)
     end
-    "$(join(l))"
+    for i in eachindex(s.seq)
+        print(io, "{")
+        print(io, i == idx ? "\\blue{" : "{")
+        show(io, m, s.seq[i])
+        print(io, "}}")
+        if s.seq[i] isa ExtendPassage
+            print(io, " ")
+        elseif !(i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage)
+            print(io, "\\# ")
+        end 
+    end
+    inmath || print(io, " \$")
 end
 
 macro calc_str(s)
@@ -76,17 +86,30 @@ _O1 = seq"L1:L5:R5:R1"
 _OA = seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
 @rule O1 = r"O1"p[1] > _ -> _O1
 @rule OA = r"OA"p[1] > _ -> _OA
-@rule procedure = ((linseq,O1,OA) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
+@rule linseqp = "(" & linseq & ")" > (_,s,_) -> s
+@rule procedure = ((linseqp,O1,OA) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
 
 macro proc_str(s)
     parsepeg(procedure, s)
 end
 
-function latex(p::StringProcedure; idx=-1)
-    ini =  p.initial == _O1 ? "O1" :
-            p.initial == _OA ? "OA" :
-            string(p.initial)
-    "{$(idx == 0 ? "\\blue{" : "{ ")$ini}}~::~$(latex(p.calculus; idx))"
+function Base.show(io::IO, m::MIME"text/latex", p::StringProcedure)
+    idx = get(io, :passidx, -1)::Int
+    print(io, "\$")
+    io = IOContext(io, :inmath => true)
+    print(io, idx == 0 ? "\\blue{" : "{")
+    if p.initial == _O1 
+        print(io, "O1")
+    elseif p.initial == _OA
+        print(io, "OA")
+    else
+        print(io,"(")
+        show(io, p.initial)
+        print(io,")")
+    end
+    print(io, "}~::~")
+    show(io, m, p.calculus)
+    print(io, "\$")
 end
 
 struct IndexedProcedure
@@ -94,13 +117,10 @@ struct IndexedProcedure
     idx::Int
 end
 
-function Base.show(io::IO, ::MIME"text/latex", p::IndexedProcedure)
-    print(io, "\$", latex(p.p; idx=p.idx), "\$")
+function Base.show(io::IO, m::MIME"text/latex", p::IndexedProcedure)
+    show(IOContext(io, :passidx => p.idx), m, p.p)
 end
 
-function Base.show(io::IO, ::MIME"text/latex", p::StringProcedure)
-    print(io, "\$", latex(p), "\$")
-end
 
 Base.iterate(p::StringProcedure) = (p.initial, (1,p.initial)) 
 function Base.iterate(p::StringProcedure, (i,s))

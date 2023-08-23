@@ -8,10 +8,21 @@ abstract type Passage end
 
 @rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p, b_multi_pick_p, b_pick_p, b_release_p, b_navaho_p, b_twist_p
 
-Base.show(io::IO, ::MIME"text/latex", f::Passage) = print(io, "\$", latex(f), "\$")
-
 macro pass_str(s)
     parsepeg(passage, s)
+end
+
+function Base.show(io::IO, ::MIME"text/latex", f::Passage)
+    inmath = get(io, :inmath, false)
+    inmath || print(io, "\$")
+    latex(io, f)
+    inmath || print(io, "\$")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", f::Passage)
+    print(io, "pass\"")
+    show(io, f)
+    print(io, "\"")
 end
 
 """
@@ -24,9 +35,8 @@ end
 
 @rule extend_p = "|" & r"!*"p > (_, x) -> ExtendPassage(length(x))
 
-Base.string(f::ExtendPassage) = "|"*"!"^f.k
-
-latex(f::ExtendPassage) = "|"*"!"^f.k
+Base.show(io::IO, ::ExtendPassage) = print(io, "|")
+latex(io::IO, ::ExtendPassage) = print(io, "|")
 
 (f::ExtendPassage)(p::LinearSequence) = simplify(p; k=1/(f.k+2))
 
@@ -55,11 +65,20 @@ end
 
 @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"[fn]"p & ")" > (f,ou,a,_,g,fn,_) -> PickPassage(f,g,fn=="n",ou=="o",a=="a")
 
-Base.string(f::PickPassage) = "$(string(f.fun))$(f.over ? "o" : "u")$(f.above ? "a" : "")($(string(f.arg))$(f.near ? "n" : "f"))"
+function Base.show(io::IO, f::PickPassage)
+    show(io, f.fun)
+    print(io, f.over ? "o" : "u", f.above ? "a" : "", "(")
+    show(io, f.arg)
+    print(io, f.near ? "n" : "f", ")")
+end
 
-function latex(f::PickPassage)
+function latex(io::IO, f::PickPassage)
     arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(idx(f.fun) <= idx(f.arg) ? "right" : "left")arrow"
-    "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}\\left($(f.above ? "\\over" : "\\under")line{$(string(f.arg))$(f.near ? "n" : "f")}\\right)"
+    print(io,"\\$(f.over ? "over" : "under")set{$arrow}{")
+    print(io, f.fun)
+    print(io, "}\\left($(f.above ? "\\over" : "\\under")line{")
+    print(io, f.arg)
+    print(io, f.near ? "n" : "f", "}\\right)")
 end
 
 (f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.fun, f.arg, f.near, f.above)
@@ -83,17 +102,22 @@ function (f::MultiPickPassage)(p::LinearSequence)
 end
 
 
-function latex(ff::MultiPickPassage)
-    map(ff.seq) do f 
+function latex(io::IO, ff::MultiPickPassage)
+    for f in ff.seq[1:end-1] 
         arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(idx(f.fun) <= idx(f.arg) ? "right" : "left")arrow"
-        "\\$(f.over ? "over" : "under")set{$arrow}{$(string(f.fun))}\\left($(string(f.arg))$(f.near ? "n" : "f")\\right)"
-    end |> x->join(x, ":")
+        print(io,"\\$(f.over ? "over" : "under")set{$arrow}{", f.fun, "}")
+        print(io, "\\left(", f.arg, f.near ? "n" : "f", "\\right):")
+    end 
+    latex(io, ff.seq[end])
 end
 
-Base.string(f::MultiPickPassage) = join(string.(f.seq), ":")
-
-
-
+function Base.show(io::IO, ff::MultiPickPassage)
+    for f in ff.seq[1:end-1] 
+        show(io, f)
+        print(io, ":")
+    end
+    show(io, ff.seq[end])
+end
 
 """
 A `ReleasePassage` represents the release of one loop. It is denoted by the "□" symbol in 
@@ -105,8 +129,15 @@ end
 
 @rule release_p = "D" & fnode > (_,f) -> ReleasePassage(f)
 
-Base.string(f::ReleasePassage) = "D$(string(f.arg))"
-latex(f::ReleasePassage) = "\\square $(string(f.arg))"
+function Base.show(io::IO, f::ReleasePassage)
+    print(io, "D")
+    show(io, f.arg)
+end
+
+function latex(io::IO, f::ReleasePassage)
+    print(io,"\\square ")
+    latex(io, f.arg)
+end
 
 function (f::ReleasePassage)(p::LinearSequence)
     delete(p) do n
@@ -124,8 +155,8 @@ end
 
 @rule navaho_p = "N" & fnode > (_,f) -> NavahoPassage(f)
 
-Base.string(f::NavahoPassage) = "N$(string(f.arg))"
-latex(f::NavahoPassage) = "N$(string(f.arg))"
+Base.show(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
+latex(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
 
 function (f::NavahoPassage)(p::LinearSequence)
     navaho(p, f.arg)
@@ -143,9 +174,12 @@ end
 
 @rule twist_p = r"[<>]" & fnode > (t,f) -> TwistPassage(f, t == ">")
 
-Base.string(f::TwistPassage) =  "$(f.away ? '>' : '<')$(string(f.arg))"
+function Base.show(io::IO, f::TwistPassage)
+    print(io, f.away ? '>' : '<')
+    show(io, f.arg)
+end
 
-latex(f::TwistPassage) = string(f)
+latex(io::IO, f::TwistPassage) = show(io, f)
 
 (f::TwistPassage)(p::LinearSequence) = twist(p, f.arg, f.away)
 
@@ -162,12 +196,23 @@ function (f::BilateralMultiPickPassage)(p::LinearSequence)
     p = pick(p, FrameNode(:R, f.fun), [(FrameNode(:R, (i,j)),fn,ou) for (i,j,fn,ou) in f.args], f.above)
 end
 
-function latex(f::BilateralMultiPickPassage)
-    join([latex(BilateralPickPassage(f.fun, (j1,j2), near, over,f.above)) for (j1,j2,near,over) in f.args], ":")
+function latex(io::IO, f::BilateralMultiPickPassage)
+    for (j1,j2,near,over) in f.args[1:end-1]
+        arrow = "\\long$(f.fun <= (j1,j2) ? "right" : "left")arrow"
+        print(io, "\\", over ? "over" : "under", "set{",arrow,"}{", _b_string(f.fun), "}", 
+            "\\left(", _b_string((j1,j2)), near ? "n" : "f", "\\right):")
+    end
+    (j1,j2,near,over) = f.args[end]
+    latex(io, BilateralPickPassage(f.fun, (j1,j2), near, over,f.above))
 end
 
-function Base.string(f::BilateralMultiPickPassage)
-    join([string(BilateralPickPassage(f.fun, (j1,j2), near, over,f.above)) for (j1,j2,near,over) in f.args], ":")
+function Base.show(io::IO, f::BilateralMultiPickPassage)
+    for (j1,j2,near,over) in f.args[1:end-1]
+        show(io, BilateralPickPassage(f.fun, (j1,j2), near, over,f.above))
+        print(io, ":")
+    end
+    (j1,j2,near,over) = f.args[end]
+    show(io, BilateralPickPassage(f.fun, (j1,j2), near, over,f.above))
 end
 
 
@@ -182,15 +227,21 @@ end
 @rule b_fnode = int & ("." & int)[0:1] > (d,l) -> (d, (isempty(l) ? 0 : only(l)[2]))
 @rule b_pick_p = b_fnode & r"[ou]"p & r"a?"p & r"\("p & b_fnode & r"[fn]"p & ")" > (f,ou,a,_,g,fn,_) -> BilateralPickPassage(f,g,fn=="n",ou=="o",a=="a")
 
-@rule b_mpick_p1 = b_fnode & r"[ou]"p & r"\("p & b_fnode & r"[fn]"p & ")" > (_,ou,_,(a1,a2),fn,_)->(a1,a2,ou == "o",fn == "n")
+@rule b_mpick_p1 = b_fnode & r"[ou]"p & r"\("p & b_fnode & r"[fn]"p & ")" > (_,ou,_,(a1,a2),fn,_)->(a1,a2,fn == "n",ou == "o")
 @rule b_multi_pick_p = (b_mpick_p1 & r":"p)[0:end] & b_pick_p > (v,b)-> BilateralMultiPickPassage(b.fun, [[x[1] for x in v]; [(b.arg..., b.near, b.over)]], b.above)
 
 
 _b_string(f) = !iszero(f[2]) ? join(f,".") : string(f[1])
-Base.string(f::BilateralPickPassage) = "$(_b_string(f.fun))$(f.over ? "o" : "u")$(f.above ? "a" : "")($(_b_string(f.arg))$(f.near ? "n" : "f"))"
-function latex(f::BilateralPickPassage)
+function Base.show(io::IO, f::BilateralPickPassage)
+    print(io, _b_string(f.fun), f.over ? "o" : "u", f.above ? "a" : "", 
+        _b_string(f.arg), f.near ? "n" : "f")
+end
+
+function latex(io::IO, f::BilateralPickPassage)
     arrow = "\\long$(f.fun <= f.arg ? "right" : "left")arrow"
-    "\\$(f.over ? "over" : "under")set{$arrow}{$(_b_string(f.fun))}\\left($(f.above ? "\\over" : "\\under")line{$(_b_string(f.arg))$(f.near ? "n" : "f")}\\right)"
+    print(io, "\\$(f.over ? "over" : "under")set{$arrow}{",
+        _b_string(f.fun), "}\\left(", f.above ? "\\over" : "\\under", "line{",
+        _b_string(f.arg), f.near ? "n" : "f", "}\\right)")
 end
 function (f::BilateralPickPassage)(p::LinearSequence)
     p = pick(p, f.over, FrameNode(:L,f.fun), FrameNode(:L,f.arg), f.near, f.above)
@@ -203,8 +254,12 @@ end
 
 @rule b_release_p = "D" & b_fnode > (_,f) -> BilateralReleasePassage(f)
 
-Base.string(f::BilateralReleasePassage) = "D$(_b_string(f.arg))"
-latex(f::BilateralReleasePassage) = "\\square $(_b_string(f.arg))"
+function Base.show(io::IO, f::BilateralReleasePassage)
+    print(io, "D", _b_string(f.arg))
+end
+function latex(io::IO, f::BilateralReleasePassage)
+    print(io, "\\square", _b_string(f.arg))
+end
 
 function (f::BilateralReleasePassage)(p::LinearSequence)
     delete(p) do n
@@ -218,8 +273,8 @@ end
 
 @rule b_navaho_p = "N" & b_fnode > (_,f) -> BilateralNavahoPassage(f)
 
-Base.string(f::BilateralNavahoPassage) = "N$(_b_string(f.arg))"
-latex(f::BilateralNavahoPassage) = "N$(_b_string(f.arg))"
+Base.show(io::IO, f::BilateralNavahoPassage) = print(io, "N", _b_string(f.arg))
+latex(io::IO, f::BilateralNavahoPassage) = print(io, "N", _b_string(f.arg))
 
 function (f::BilateralNavahoPassage)(p::LinearSequence)
     p = navaho(p, FrameNode(:L, f.arg))
@@ -235,9 +290,9 @@ end
 
 @rule b_twist_p = r"[<>]" & b_fnode > (t,f) -> BilateralTwistPassage(f, t == ">")
 
-Base.string(f::BilateralTwistPassage) = f.away ? ">$(_b_string(f.arg))" : "<$(_b_string(f.arg))"
+Base.show(io::IO, f::BilateralTwistPassage) = print(io, f.away ? ">" : "<", _b_string(f.arg))
 
-latex(f::BilateralTwistPassage) = _b_string(f)
+latex(io::IO, f::BilateralTwistPassage) = print(io, f.away ? ">" : "<", _b_string(f.arg))
 
 function (f::BilateralTwistPassage)(p::LinearSequence)
     p = twist(p, FrameNode(:L, f.arg), f.away)

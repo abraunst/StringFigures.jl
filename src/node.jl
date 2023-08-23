@@ -25,6 +25,7 @@ struct FrameNode <: SeqNode
         new(type, idx, loop)
     end
 end
+
 FrameNode(type, idx::Tuple{Int, Int}) = FrameNode(type, idx...)
 
 SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, idx)
@@ -34,18 +35,14 @@ SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, i
 @rule xnode = "x" & int & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> CrossNode(t == "U" ? :U : :O, d)
 @rule snode = fnode, xnode
 
+
 inverse(n::CrossNode) = CrossNode(type(n) == :O ? :U : :O, n.index)
 idx(n::SeqNode) = n.index
-idx(n::FrameNode) = (n.index, n.loop)
-loop(n::FrameNode) = n.loop
 type(n::SeqNode) = n.nodetype
-
-function Base.string(n::FrameNode)
-    i,l = idx(n)
-    l == 0 ? "$(type(n))$i" : "$(type(n))$i.$l"
-end
-
-Base.string(n::CrossNode) =  "x$(idx(n))($(type(n) == :U ? 'U' : '0'))"
+idx(n::FrameNode) = (n.index, n.loop)
+functor(n::FrameNode) = (n.nodetype, n.index)
+functor(n::CrossNode) = nothing
+loop(n::FrameNode) = n.loop
 
 Base.:(<)(s::FrameNode, t::FrameNode) = idx(s) < idx(t)
 
@@ -65,4 +62,23 @@ macro node_str(s)
     parsepeg(snode, s)
 end
 
-Base.show(io::IO, p::SeqNode) = print(io, "node\"", string(p), "\"")
+function Base.show(io::IO, n::CrossNode)
+    print(io, "x$(idx(n))($(type(n) == :U ? 'U' : '0'))")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", p::CrossNode)
+    print(io, "node\"")
+    show(io, p)
+    print(io, "\"")
+end
+
+function Base.show(io::IO, n::FrameNode)
+    (i,d),t = idx(n), type(n)
+    print(io, d == 0 ? "$t$i" : "$t$i.$d")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", n::FrameNode)
+    print(io, "node\"")
+    show(io, n)
+    print(io,"\"")
+end

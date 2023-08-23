@@ -8,7 +8,7 @@ function navaho(p::LinearSequence, f::FrameNode)
     N = maximum(idx(n) for n in p if n isa CrossNode)
     s = SeqNode[]
     for n in p
-        if n == FrameNode(type(f), idx(f)[1], idx(f)[2]+1)
+        if n == FrameNode(functor(f)..., loop(f) + 1)
             append!(s, isnearsidenext(p, n) ?
                 [CrossNode(:O,N+3), CrossNode(:U,N+2), f, CrossNode(:U,N+1), CrossNode(:O,N+4)] :
                 [CrossNode(:O,N+4), CrossNode(:U,N+1), f, CrossNode(:U,N+2), CrossNode(:O,N+3)]
@@ -74,8 +74,8 @@ end
 function pick_sameside(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}})
     arg, near, _ = args[end]
     @assert type(f) == type(arg) # only on the same side
-    k = 1 + maximum(loop(n) for n in p if type(n) == type(f) && idx(n)[1] == idx(f)[1]; init=-1)
-    f = FrameNode(type(f), idx(f)[1], k)
+    k = 1 + maximum(loop(n) for n in p if functor(n) == functor(f); init=-1)
+    f = FrameNode(functor(f)..., k)
     path = build_path(p, f, args)
     i = findframenode(arg, p) 
     argnext = (near == isnearsidenext(p, i))
