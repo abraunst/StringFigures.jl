@@ -72,10 +72,10 @@ end
 
 
 """
-A `StringProcedure``consists n an initial `LinearSequence` plus a 
+A `StringProcedure``consists in an initial `LinearSequence` plus a 
 `StringCalculus` to be applied to it. It represents the full "movie" of
 the figure construction. It can be
-* indexed and iterated`to access each intermediate step
+* indexed and iterated to access each intermediate step
 * `plot`ed to show all steps
 """
 struct StringProcedure
@@ -84,8 +84,8 @@ struct StringProcedure
 end
 _O1 = seq"L1:L5:R5:R1"
 _OA = seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
-@rule O1 = r"O1"p[1] > _ -> _O1
-@rule OA = r"OA"p[1] > _ -> _OA
+@rule O1 = r"O1"p |> _ -> _O1
+@rule OA = r"OA"p |> _ -> _OA
 @rule linseqp = "(" & linseq & ")" > (_,s,_) -> s
 @rule procedure = ((linseqp,O1,OA) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
 

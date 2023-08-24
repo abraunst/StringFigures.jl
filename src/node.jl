@@ -30,7 +30,7 @@ FrameNode(type, idx::Tuple{Int, Int}) = FrameNode(type, idx...)
 
 SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, idx)
 
-@rule int =  r"\d+"[1] > x -> parse(Int, x)
+@rule int =  r"\d+" |> x -> parse(Int, x)
 @rule fnode = r"[LR]" & int & ("." & int)[0:1] > (t,d,l) -> FrameNode(Symbol(t), d, isempty(l) ? 0 : only(l)[2])
 @rule xnode = "x" & int & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> CrossNode(t == "U" ? :U : :O, d)
 @rule snode = fnode, xnode

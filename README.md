@@ -36,7 +36,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
 
 * `SeqNode`s (`node.jl`). Use it with `node"xxx"`
   ```julia
-  @rule int =  r"\d+"[1]
+  @rule int =  r"\d+"
   @rule fnode = r"[LR]" & int & ("." & int)[0:1]
   @rule xnode = "x" & int & "(" & r"[0U]" & ")"
   @rule snode = fnode, xnode
@@ -49,28 +49,34 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
 * `Passage`s (`passage.jl`). Use it with `pass"xxx"`
   ```julia
   @rule passage = extend_p, twist_p, release_p, navaho_p, pick_p, b_pick_p, b_release_p, b_twist_p, b_navaho_p
-  @rule extend_p = "|"
+  @rule extend_p = "|" & r"!*"p
   @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"[fn]"p & ")"
+  @rule multi_pick_p = pick_pp[1:end] & pick_p
   @rule release_p = "D" & fnode
   @rule navaho_p = "N" & fnode
   @rule twist_p = r"[<>]" & fnode
+
+
   @rule b_fnode = int & ("." & int)[0:1]
   @rule b_pick_p = b_fnode & r"[ou]"p & r"a?"p & r"\("p & b_fnode & r"[fn]"p & ")"
+  @rule b_mpick_p1 = b_fnode & r"[ou]"p & r"\("p & b_fnode & r"[fn]"p & ")"
+  @rule b_multi_pick_p = (b_mpick_p1 & r":"p)[0:end] & b_pick_p
   @rule b_release_p = "D" & b_fnode
-  @rule b_twist_p = r"[<>]" & b_fnode
   @rule b_navaho_p = "N" & b_fnode
+  @rule b_twist_p = r"[<>]" & b_fnode
 
   ```
 * `Calculus`s (`calculus.jl`). Use it with `calc"xxx"`
   ```julia
   @rule passages = (passage & r"#?"p)
   @rule calculus = r""p & passages[*]
-  @rule O1 = r"O1"p[1]
-  @rule OA = r"OA"p[1]
   ```
 * `StringProcedure` (`calculus.jl`). Use it with `proc"xxx"`
   ```julia
-  @rule procedure = ((linseq,O1,OA) & r"::"p & calculus)
+  @rule O1 = r"O1"p
+  @rule OA = r"OA"p
+  @rule linseqp = "(" & linseq & ")"
+  @rule procedure = ((linseqp,O1,OA) & r"::"p & calculus)
   ```
 
 
