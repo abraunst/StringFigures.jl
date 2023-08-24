@@ -51,6 +51,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule passage = extend_p, twist_p, release_p, navaho_p, pick_p, b_pick_p, b_release_p, b_twist_p, b_navaho_p
   @rule extend_p = "|" & r"!*"p
   @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"[fn]"p & ")"
+  @rule pick_pp = pick_p & r":"p 
   @rule multi_pick_p = pick_pp[1:end] & pick_p
   @rule release_p = "D" & fnode
   @rule navaho_p = "N" & fnode
