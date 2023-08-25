@@ -140,30 +140,36 @@ if the pick passes over the corresponding segment. Here segment `(j,bj)` is the
 segment going from `p[j]` to `p[j+bj]`.
 """
 function pick_path(p, f, i, bi, path)
-    before = [SeqNode[] for _ in p]
-    after = [SeqNode[] for _ in p]
-    nold = numcrossings(p) 
-    nnew = nold + 1
+    before, after = [SeqNode[] for _ in p], [SeqNode[] for _ in p]
+    nx = numcrossings(p)
 
-    for (j, bj, oj) in path
-        push!((bj ? after : before)[j], CrossNode(oj ? :U : :O, nnew +  bj))
-        push!((bj ? after : before)[j], CrossNode(oj ? :U : :O, nnew + !bj))
-        nnew += 2
+    # add two new crossings for each crossing segment
+    for (x, (j, bj, oj)) in pairs(path)
+        cross = CrossNode(oj ? :U : :O, nx + 2x), CrossNode(oj ? :U : :O, nx + 2x - 1)
+        if bj
+            append!(after[j], cross)
+        else
+            append!(before[j], reverse(cross))
+        end
     end
+
     # add spike
-    c = Iterators.flatten((
-        (CrossNode(oj ? :O : :U, 2x - 1 + nold) for (x,(_,_,oj)) in pairs(path)),
+    spike = Iterators.flatten((
+        (CrossNode(oj ? :O : :U, nx + 2x) for (x,(_,_,oj)) in pairs(path)),
         (f,),
-        (CrossNode(oj ? :O : :U, 2x + nold) for (x,(_,_,oj)) in Iterators.reverse(pairs(path)))))
-
-    append!((bi ? after : before)[i], !bi ? c : Iterators.reverse(c)) 
-
+        (CrossNode(oj ? :O : :U, nx + 2x - 1) for (x,(_,_,oj)) in Iterators.reverse(pairs(path)))))
+    if bi
+        append!(after[i], spike)
+    else
+        append!(before[i], Iterators.reverse(spike))
+    end
+    
     # build new linear sequence inserting all new crossings 
     vnew = SeqNode[]
-    for j in eachindex(p)
-        append!(vnew, before[j])
-        push!(vnew, p[j])
-        append!(vnew, after[j])
+    for (b,n,a) in zip(before, p, after)
+        append!(vnew, b)
+        push!(vnew, n)
+        append!(vnew, a)
     end
     #LinearSequence(vnew)
     canonical(LinearSequence(vnew))
