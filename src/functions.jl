@@ -87,10 +87,14 @@ Builds path from `f` to `args[end]` close to the fingers, with under/over switch
 intermediate steps.
 """
 function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}})
-    a = length(args)
-    arg, near, over = args[a]
+    a, (arg, near, over) = (length(args) - 1, args[end])  
+    function update(n, b)
+        if a > 0 && n == args[a][1] && b == args[a][2]
+            arg, near, over = args[a]
+            a -= 1
+        end
+    end
 
-    a -= 1
     i = findframenode(arg, p)
     path = Tuple{Int, Bool, Bool}[]
 
@@ -98,14 +102,11 @@ function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNod
     fbelow = idx(f) < idx(arg)
     # is the arg of the functor on the right of i in the seq?
     argnext = (near == isnearsidenext(p, i))
-
+     
     # eventual crossing in the arg node 
     if fbelow != near
         push!(path, (i, !argnext, over))
-        if a > 0 && p[i] == args[a][1] && near != args[a][2]
-            arg, near, over = args[a]
-            a -= 1
-        end
+        update(p[i], fbelow)
     end
 
     middle = [(idx(n),j) for (j,n) in pairs(p) if n != f && n != arg && 
@@ -117,18 +118,10 @@ function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNod
         farnext = isfarsidenext(p, j)  
         # are the first two new crossings on the right of j in the seq?
         cnext = (fbelow == farnext)
-
         push!(path, (j, cnext, over))
-        if a > 0 && p[j] == args[a][1] && fbelow != args[a][2]
-            arg, near, over = args[a]
-            a -= 1
-        end
-
+        update(p[j], !fbelow)
         push!(path, (j, !cnext, over))
-        if a > 0 && p[j] == args[a][1] && fbelow == args[a][2]
-            arg, near, over = args[a]
-            a -= 1
-        end
+        update(p[j], fbelow)
     end
     return path
 end
@@ -146,11 +139,7 @@ function pick_path(p, f, i, bi, path)
     # add two new crossings for each crossing segment
     for (x, (j, bj, oj)) in pairs(path)
         cross = CrossNode(oj ? :U : :O, nx + 2x), CrossNode(oj ? :U : :O, nx + 2x - 1)
-        if bj
-            append!(after[j], cross)
-        else
-            append!(before[j], reverse(cross))
-        end
+        bj ? append!(after[j], cross) : append!(before[j], reverse(cross))
     end
 
     # add spike
@@ -158,12 +147,8 @@ function pick_path(p, f, i, bi, path)
         (CrossNode(oj ? :O : :U, nx + 2x) for (x,(_,_,oj)) in pairs(path)),
         (f,),
         (CrossNode(oj ? :O : :U, nx + 2x - 1) for (x,(_,_,oj)) in Iterators.reverse(pairs(path)))))
-    if bi
-        append!(after[i], spike)
-    else
-        append!(before[i], Iterators.reverse(spike))
-    end
-    
+    bi ? append!(after[i], spike) : append!(before[i], Iterators.reverse(spike))
+
     # build new linear sequence inserting all new crossings 
     vnew = SeqNode[]
     for (b,n,a) in zip(before, p, after)
