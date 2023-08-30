@@ -35,8 +35,8 @@ end
 
 @rule extend_p = "|" & r"!*"p > (_, x) -> ExtendPassage(length(x))
 
-Base.show(io::IO, ::ExtendPassage) = print(io, "|")
-latex(io::IO, ::ExtendPassage) = print(io, "|")
+Base.show(io::IO, f::ExtendPassage) = print(io, "|"*"!"^f.k)
+latex(io::IO, f::ExtendPassage) = show(io, f)
 
 (f::ExtendPassage)(p::LinearSequence) = simplify(p; k=1/(f.k+2))
 
