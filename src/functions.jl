@@ -135,19 +135,18 @@ segment going from `p[j]` to `p[j+bj]`.
 function pick_path(p, f, i, bi, path)
     before, after = [SeqNode[] for _ in p], [SeqNode[] for _ in p]
     nx = numcrossings(p)
+    insert(j, bj, x) = bj ? append!(after[j], x) : append!(before[j], Iterators.reverse(x))
 
     # add two new crossings for each crossing segment
     for (x, (j, bj, oj)) in pairs(path)
-        cross = CrossNode(oj ? :U : :O, nx + 2x), CrossNode(oj ? :U : :O, nx + 2x - 1)
-        bj ? append!(after[j], cross) : append!(before[j], reverse(cross))
+        insert(j, bj, (CrossNode(oj ? :U : :O, nx + 2x), CrossNode(oj ? :U : :O, nx + 2x - 1)))
     end
 
     # add spike
-    spike = Iterators.flatten((
+    insert(i, bi, Iterators.flatten((
         (CrossNode(oj ? :O : :U, nx + 2x) for (x,(_,_,oj)) in pairs(path)),
         (f,),
-        (CrossNode(oj ? :O : :U, nx + 2x - 1) for (x,(_,_,oj)) in Iterators.reverse(pairs(path)))))
-    bi ? append!(after[i], spike) : append!(before[i], Iterators.reverse(spike))
+        (CrossNode(oj ? :O : :U, nx + 2x - 1) for (x,(_,_,oj)) in Iterators.reverse(pairs(path))))))
 
     # build new linear sequence inserting all new crossings 
     vnew = SeqNode[]
@@ -166,7 +165,7 @@ function pick(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near:
 end
 
 function pick(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode, Bool, Bool}}, above::Bool=false)
-    arg, near, over = args[end]
+    arg, _, over = args[end]
     type(f) == type(arg) && return pick_sameside(p, f, args)
     extra = idx(f) > idx(arg) ? (0,0) : (6,0) ## check
     farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
