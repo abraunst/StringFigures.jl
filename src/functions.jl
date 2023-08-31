@@ -52,14 +52,14 @@ function simplify12(p::LinearSequence)
                 push!(rem, D2[j])
             end
             # lemma 2b
-            if j > 1 && 
+            if j > 1 &&
                 isadjacent(i,       D1[j-1]) &&
                 isadjacent(D2[j], D2[j-1])
                 push!(rem, i)
                 push!(rem, D1[j-1])
                 push!(rem, D2[j])
                 push!(rem, D2[j-1])
-            end        
+            end
         end
         isempty(rem) && break
         deleteat!(p.seq, sort!(rem))
@@ -77,17 +77,17 @@ function pick_sameside(p::LinearSequence, f::FrameNode, args::Vector{Tuple{Frame
     k = 1 + maximum(loop(n) for n in p if functor(n) == functor(f); init=-1)
     f = FrameNode(functor(f)..., k)
     path = build_path(p, f, args)
-    i = findframenode(arg, p) 
+    i = findframenode(arg, p)
     argnext = (near == isnearsidenext(p, i))
     pick_path(p, f, i, argnext, path)
 end
 
 """
-Builds path from `f` to `args[end]` close to the fingers, with under/over switching at 
+Builds path from `f` to `args[end]` close to the fingers, with under/over switching at
 intermediate steps.
 """
 function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}})
-    a, (arg, near, over) = (length(args) - 1, args[end])  
+    a, (arg, near, over) = (length(args) - 1, args[end])
     function update(n, b)
         if a > 0 && n == args[a][1] && b == args[a][2]
             arg, near, over = args[a]
@@ -102,20 +102,20 @@ function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNod
     fbelow = idx(f) < idx(arg)
     # is the arg of the functor on the right of i in the seq?
     argnext = (near == isnearsidenext(p, i))
-     
-    # eventual crossing in the arg node 
+
+    # eventual crossing in the arg node
     if fbelow != near
         push!(path, (i, !argnext, over))
         update(p[i], fbelow)
     end
 
-    middle = [(idx(n),j) for (j,n) in pairs(p) if n != f && n != arg && 
+    middle = [(idx(n),j) for (j,n) in pairs(p) if n != f && n != arg &&
         type(n) == type(f) && (idx(n) < idx(f)) != (idx(n) < idx(arg))]
     sort!(middle; rev=fbelow)
 
     for (_,j) in middle
         # intermediate active frame node
-        farnext = isfarsidenext(p, j)  
+        farnext = isfarsidenext(p, j)
         # are the first two new crossings on the right of j in the seq?
         cnext = (fbelow == farnext)
         push!(path, (j, cnext, over))
@@ -128,8 +128,8 @@ end
 
 """
 Makes a complex pick by functor `f`` of segment `(i,bi)` through
-all segments in `path`, each one identified by `(j,bj,o)` where `o` determines 
-if the pick passes over the corresponding segment. Here segment `(j,bj)` is the 
+all segments in `path`, each one identified by `(j,bj,o)` where `o` determines
+if the pick passes over the corresponding segment. Here segment `(j,bj)` is the
 segment going from `p[j]` to `p[j+bj]`.
 """
 function pick_path(p, f, i, bi, path)
@@ -149,7 +149,7 @@ function pick_path(p, f, i, bi, path)
         (CrossNode(oj ? :O : :U, nx + 2x - 1) for (x,(_,_,oj)) in Iterators.reverse(pairs(path)))))
     bi ? append!(after[i], spike) : append!(before[i], Iterators.reverse(spike))
 
-    # build new linear sequence inserting all new crossings 
+    # build new linear sequence inserting all new crossings
     vnew = SeqNode[]
     for (b,n,a) in zip(before, p, after)
         append!(vnew, b)
@@ -174,7 +174,7 @@ function pick(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode, Boo
     p.seq[findframenode(farg, p)] = ffun
     #println(p)
     p = pick_sameside(p, over, f, ffun, idx(f) < extra)
-    p = release(p, ffun) 
+    p = release(p, ffun)
     if above
         p = twist(p, f, idx(f) < idx(arg))
     end
@@ -186,29 +186,29 @@ function twist(p::LinearSequence, f::FrameNode, away::Bool)
     n = maximum(idx, Iterators.filter(!isframenode, p); init=0)
     U, O = away == isnearsidenext(p, f) ? (:U, :O) : (:O, :U)
     canonical(@views LinearSequence([
-        p.seq[1:i-1]; 
-        CrossNode(U, n+1); 
-        f; 
-        CrossNode(O, n+1); 
+        p.seq[1:i-1];
+        CrossNode(U, n+1);
+        f;
+        CrossNode(O, n+1);
         p.seq[i+1:end]]))
 end
 
-"ϕ₃ simplifications (lemma 2c), based on string total length/tension" 
+"ϕ₃ simplifications (lemma 2c), based on string total length/tension"
 function simplify3(q::LinearSequence; k=0.5)
     p = copy(q)
     ten = tension(p)
     for i in eachindex(p)
-        if p[i] isa CrossNode && p[i+1] isa CrossNode && 
+        if p[i] isa CrossNode && p[i+1] isa CrossNode &&
             type(p[i]) == type(p[i+1]) && idx(p[i]) != idx(p[i+1])
             j1 = findfirst(==(inverse(p[i])),p)
             j2 = findfirst(==(inverse(p[i+1])),p)
             for (k1,k2) in Iterators.product((j1+1,j1-1),(j2+1,j2-1))
-                if p[k1] isa CrossNode && p[k2] isa CrossNode && 
+                if p[k1] isa CrossNode && p[k2] isa CrossNode &&
                         p[k1] == inverse(p[k2])
                     p1 = copy(p)
                     p1[i],p1[i+1] = p1[i+1],p1[i]
                     p1[j1],p1[k1] = p1[k1],p1[j1]
-                    p1[j2],p1[k2] = p1[k2],p1[j2] 
+                    p1[j2],p1[k2] = p1[k2],p1[j2]
                     p1 = simplify12(p1)
                     tension(p1; k) < ten  && return p1
                 end
