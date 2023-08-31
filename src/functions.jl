@@ -167,15 +167,19 @@ end
 
 function pick(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode, Bool, Bool}}, above::Bool=false)
     arg, near, over = args[end]
-    type(f) == type(arg) && return pick_sameside(p, f, args)
-    extra = idx(f) > idx(arg) ? (0,0) : (6,0) ## check
-    farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
-    p = pick_sameside(p, farg, args)
-    p.seq[findframenode(farg, p)] = ffun
-    #println(p)
-    p = pick_sameside(p, over, f, ffun, idx(f) < extra)
-    p = release(p, ffun)
+    # if pick on same hand
+    if type(f) == type(arg)
+        p = pick_sameside(p, f, args)
+    else
+        extra = idx(f) > idx(arg) ? (0,0) : (6,0) ## check
+        farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
+        p = pick_sameside(p, farg, args)
+        p.seq[findframenode(farg, p)] = ffun
+        p = pick_sameside(p, over, f, ffun, idx(f) < extra)
+        p = release(p, ffun)
+    end
     if above
+        # picking from above is equivalent to pick from below, but with a twist
         p = twist(p, f, idx(f) < idx(arg))
     end
     p |> simplify
