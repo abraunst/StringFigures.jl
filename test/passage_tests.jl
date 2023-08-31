@@ -8,7 +8,6 @@ fig9b = seq"L1:L5:x1(0):x2(0):R5:R1:x2(U):x1(U)"
 fig9c = seq"L1:L5:x1(0):x2(0):x3(0):x1(U):R5:R1:x2(U):x3(U)"
 fig10 = seq"L1:L5:x1(0):x2(0):x2(U):x3(0):R5:R1:x3(U):x1(U)"
 OA = seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
-fig155a = seq"L2:x1(0):R3:x2(0):L5:R5:x2(U):L3:x1(U):R2"
 
 @testset "extend" begin
     # O1 opening, nothing to extend-cancel
@@ -29,9 +28,11 @@ fig155a = seq"L2:x1(0):R3:x2(0):L5:R5:x2(U):L3:x1(U):R2"
 end
 
 @testset "pick" begin
-    fig155apick = seq"x9(U):x10(U):L2:x8(U):x7(U):x1(0):R3:x2(0):x3(0):x5(0):x7(0):x9(0):L1:x10(0):x8(0):x6(0):x4(0):L5:R5:x2(U):x3(U):x4(U):L3:x6(U):x5(U):x1(U):R2"
-    @test pick(fig155a, true, node"L1", node"L5", true) == fig155apick
-    @test pass"L1o(L5f)"(seq"L2:L5:R5:R2") == seq"L1:x1(0):x2(0):x3(0):L5:x3(U):x4(U):x5(U):x2(U):L2:x1(U):x6(U):R2:R5:x4(0):x5(0):x6(0)"
+    fig155a = seq"L2:x1(0):R3:x2(0):L5:R5:x2(U):L3:x1(U):R2"
+    fig155b = seq"L1:x9(0):x7(0):x5(0):x3(0):L5:R5:x2(U):x4(U):x3(U):L3:x5(U):x6(U):x1(U):R2:x10(U):x9(U):L2:x7(U):x8(U):x1(0):R3:x2(0):x4(0):x6(0):x8(0):x10(0)"
+    #                   over     f        arg     near
+    @test pick(fig155a, true, node"L1", node"L5", true) == fig155b
+    @test fig155a |> pass"L1o(L5n)" == fig155b
 end
 
 @testset "release" begin
