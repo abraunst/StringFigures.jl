@@ -112,14 +112,14 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   * Calculus (Storer, p362)
 * [x] Extend, i.e. the $\mid$ operation (Storer, p003)
   * Lemma 2 A. and B. (Storer, p011) on extension cancellation
-* [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below
-  * e.g. $\overset{\longleftarrow}{L3}\left(\underline{L1n}\right)$
+* [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below. Example: $\overset{\longleftarrow}{L3}\left(\underline{L1n}\right)$
   * i.e. pass $L3$ (toward the executer) **over** all intermediate strings and pick up $L1n$ from below
-  * this is encoded as `L3o(L1n)`
+  * This is encoded in plain text as `L3o(L1n)`
 * [X] Pick from above
+* [X] Three-dimensional picks, in which the finger moves also vertically to pass over some strings and below others (notation: e.g. `L1o(L2n):L1u(L2f):L1u(L3n)`)
+* [ ] Pick with non-standard arguments
 * [X] Navaho release move
 * [X] $\phi_3$ passages and heuristics to decide when to apply it
-* [ ] Pick with non-standard arguments
 * [x] Multiple loops in a single Ln or Rn
 * [ ] Non-finger functors
 * [x] Pick from non-empty framenode
