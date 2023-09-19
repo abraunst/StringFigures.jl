@@ -114,7 +114,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   * Lemma 2 A. and B. (Storer, p011) on extension cancellation
 * [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below
   * e.g. $\overset{\longleftarrow}{L3}\left(\underline{L1n}\right)$
-  * i.e. pass $L3$ (away) **over** all intermediate strings and pick up $L5n$ from below
+  * i.e. pass $L3$ (toward the executer) **over** all intermediate strings and pick up $L1n$ from below
   * this is encoded as `L3o(L1n)`
 * [X] Pick from above
 * [X] Navaho release move
