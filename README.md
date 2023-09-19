@@ -115,7 +115,8 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
 * [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below. Example: $\overset{\longleftarrow}{L3}\left(\underline{L1n}\right)$
   * i.e. pass $L3$ (toward the executer) **over** all intermediate strings and pick up $L1n$ from below
   * This is encoded in plain text as `L3o(L1n)`
-* [X] Pick from above
+* [X] Twist move
+* [X] Pick from above (pick + twist)
 * [X] Three-dimensional picks, in which the finger moves also vertically to pass over some strings and below others (notation: e.g. `L1o(L2n):L1u(L2f):L1u(L3n)`)
 * [ ] Pick with non-standard arguments
 * [X] Navaho release move
