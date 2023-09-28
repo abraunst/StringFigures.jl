@@ -1,4 +1,4 @@
-using PEG
+using PEG, Logging
 
 ######## Linear Sequence
 
@@ -72,7 +72,7 @@ function canonical(p::LinearSequence)
     j = 1
 
     #rebuild the sequence in canonical order
-    map(eachindex(p)) do i
+    ret = map(eachindex(p)) do i
         n = p[rev ? Lpos - i + 1 : Lpos + i - 1]
         if n isa FrameNode
             n
@@ -84,6 +84,10 @@ function canonical(p::LinearSequence)
             CrossNode(type(n), D[idx(n)])
         end
     end |> LinearSequence
+    @debug begin
+        "canonical()\nINPUT:"*string(p)*"\n"*join("replace $a -> $b\n" for (a,b) in D if a != b)*"OUTPUT:"*string(ret)
+    end 
+    ret
 end
 
 isadjacent(p::LinearSequence, i, j) = abs(i-j) ∈ (1,length(p) - 1)
