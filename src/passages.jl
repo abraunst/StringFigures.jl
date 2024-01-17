@@ -136,7 +136,7 @@ end
 
 function latex(io::IO, f::ReleasePassage)
     print(io,"\\square ")
-    latex(io, f.arg)
+    show(io, f.arg)
 end
 
 function (f::ReleasePassage)(p::LinearSequence)
