@@ -63,7 +63,14 @@ struct PickPassage <: Passage
     near::Bool
     over::Bool
     above::Bool
+    function PickPassage(fun,away,arg,near,over,above)
+        if type(fun) == type(arg) 
+            away = (idx(fun) < idx(arg))
+        end
+        new(fun,away,arg,near,over,above)
+    end
 end
+
 
 @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"t?"p & r"\("p & fnode & r"[fn]"p & ")" > (f,ou,a,t,_,g,fn,_) -> PickPassage(f,t == "",g,fn=="n",ou=="o",a=="a")
 
