@@ -160,27 +160,33 @@ function pick_path(p, f, i, bi, path)
 end
 
 
-function pick(p::LinearSequence, over::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)
-    pick(p, f, [(arg,near,over)], above)
+function pick(p::LinearSequence, over::Bool, towards::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)
+    pick(p, f, towards, [(arg,near,over)], above)
+end
+
+
+function pick_otherside(p::LinearSequence, f::FrameNode, towards::Bool, args)
+    arg, _, over = args[end]
+    extra = towards ? (0,0) : (6,0) ## check
+    farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
+    p = pick_sameside(p, farg, args)
+    p.seq[findframenode(farg, p)] = ffun
+    p = pick_sameside(p, over, f, ffun, idx(f) < extra)
+    p = release(p, ffun)
+end
+
+function pick(p::LinearSequence, f::FrameNode, towards::Bool, args::Vector{Tuple{FrameNode, Bool, Bool}}, above::Bool=false)
+    p = type(f) == type(args[end][1]) ? 
+            pick_sameside(p, f, args) :
+            pick_otherside(p, f, towards, args)
+    if above
+        p = twist(p, f, towards)
+    end
+    simplify(p)
 end
 
 function pick(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode, Bool, Bool}}, above::Bool=false)
-    arg, _, over = args[end]
-    if type(f) == type(arg) 
-        p = pick_sameside(p, f, args)
-    else
-        extra = idx(f) < idx(arg) ? (0,0) : (6,0) ## check
-        farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
-        p = pick_sameside(p, farg, args)
-        p.seq[findframenode(farg, p)] = ffun
-        #println(p)
-        p = pick_sameside(p, over, f, ffun, idx(f) < extra)
-        p = release(p, ffun)
-    end
-    if above
-        p = twist(p, f, idx(f) < idx(arg))
-    end
-    simplify(p)
+    pick(p::LinearSequence, f::FrameNode, idx(f) < idx(args[end][1]), args, above)
 end
 
 function twist(p::LinearSequence, f::FrameNode, away::Bool)
