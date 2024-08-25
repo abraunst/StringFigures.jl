@@ -44,7 +44,7 @@ latex(io::IO, f::ExtendPassage) = show(io, f)
 A `PickPassage` represents the action of picking a string with a given functor. 
 Its arguments are:
 - `fun::SeqNode`  : the functor (i.e. the picking finger)
-- `towards::Bool` : on an "other hand" pick, if the first movement is towards the executer 
+- `away::Bool`    : on an "other hand" pick, if the first movement is away the executer (default) 
 - `arg::SeqNode`  : the argument (i.e. the finger holding the section of string being picked)
 - `near::Bool`    : is it the *near* portion of the string? 
 - `over::Bool`    : does the finger travels above all other string in order to reach it?
@@ -58,14 +58,14 @@ one `near` the executer or not.
 """
 struct PickPassage <: Passage
     fun::FrameNode
-    towards::Bool
+    away::Bool
     arg::FrameNode
     near::Bool
     over::Bool
     above::Bool
 end
 
-@rule pick_p = fnode & r"[ou]"p & r"a?"p & r"w?"p & r"\("p & fnode & r"[fn]"p & ")" > (f,ou,a,away,_,g,fn,_) -> PickPassage(f,away == "",g,fn=="n",ou=="o",a=="a")
+@rule pick_p = fnode & r"[ou]"p & r"a?"p & r"t?"p & r"\("p & fnode & r"[fn]"p & ")" > (f,ou,a,t,_,g,fn,_) -> PickPassage(f,t == "",g,fn=="n",ou=="o",a=="a")
 
 function Base.show(io::IO, f::PickPassage)
     show(io, f.fun)
@@ -75,7 +75,7 @@ function Base.show(io::IO, f::PickPassage)
 end
 
 function latex(io::IO, f::PickPassage)
-    arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(f.towards ? "right" : "left")arrow"
+    arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(f.away ? "right" : "left")arrow"
     print(io,"\\$(f.over ? "over" : "under")set{$arrow}{")
     print(io, f.fun)
     print(io, "}\\left($(f.above ? "\\over" : "\\under")line{")
@@ -83,7 +83,7 @@ function latex(io::IO, f::PickPassage)
     print(io, f.near ? "n" : "f", "}\\right)")
 end
 
-(f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.towards, f.fun, f.arg, f.near, f.above)
+(f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.away, f.fun, f.arg, f.near, f.above)
 
 """
 A `MultiPickPassage` represents the action of picking a string with a given functor. 
