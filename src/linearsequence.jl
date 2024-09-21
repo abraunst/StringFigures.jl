@@ -115,7 +115,7 @@ function isfarsidenext(p::LinearSequence, i::Int)
         n = p[i+k]
         if n isa CrossNode
             push!(rset, idx(n)) 
-        elseif type(n) != type(p[i])
+        else
             r = i+k
             break
         end
@@ -124,18 +124,21 @@ function isfarsidenext(p::LinearSequence, i::Int)
         n = p[i-k]
         if n isa CrossNode
             push!(lset, idx(n))
-        elseif type(n) != type(p[i])
+        else
             l = i-k
             break
         end
     end
 
-
     @assert mod(l-i, length(p)) != 0 && mod(r-i, length(p)) != 0  "only 3 or more frame nodes!"
 
     crossings = lset ∩ rset
-    #@show crossings
-    (idx(p[l]) < idx(p[r])) != isodd(length(crossings))
+    #@show lset rset l r p[l] p[r] getindex.((p,), lset) getindex.((p,), rset) crossings
+    # determine if p[l] < p[r] (wrt. p[i])
+    lr = ((type(p[l]) == type(p[r]) && idx(p[l]) < idx(p[r])) 
+        || (type(p[l]) == type(p[i]) && idx(p[l]) < idx(p[i]))
+        || (type(p[r]) == type(p[i]) && idx(p[r]) > idx(p[i]))) 
+    lr == iseven(length(crossings))
 end
 
 isfarsidenext(p::LinearSequence, n::FrameNode) = isfarsidenext(p, findframenode(n, p))
