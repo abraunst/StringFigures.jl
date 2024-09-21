@@ -93,6 +93,9 @@ macro proc_str(s)
     parsepeg(procedure, s)
 end
 
+(::Colon)(s::LinearSequence, c::StringCalculus) = StringProcedure(s, c)
+(::Colon)(s::LinearSequence, c::AbstractString) = StringProcedure(s, parsepeg(calculus, c))
+
 function Base.show(io::IO, m::MIME"text/latex", p::StringProcedure)
     idx = get(io, :passidx, -1)::Int
     print(io, "\$")
