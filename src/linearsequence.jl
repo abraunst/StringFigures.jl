@@ -116,7 +116,7 @@ function isnearer(n1::FrameNode, n2::FrameNode, n::FrameNode)
     if type(n1) != type(n) && type(n2) != type(n)
         idx(n1) < idx(n2)
     elseif type(n1) == type(n) == type(n2)
-        if (idx(n1) == idx(n)) == (idx(n2) == idx(n))
+        if (idx(n1) < idx(n)) == (idx(n2) < idx(n))
             idx(n1) > idx(n2)
         else
             idx(n1) < idx(n2)
