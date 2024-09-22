@@ -108,6 +108,27 @@ end
 
 numcrossings(p::LinearSequence) = maximum(idx(n) for n in p if n isa CrossNode; init = 0)
 
+
+"""
+Determine if n1 is closer to the executer than n2 (wrt. n)
+"""
+function isnearer(n1::FrameNode, n2::FrameNode, n::FrameNode)
+    if type(n1) != type(n) && type(n2) != type(n)
+        idx(n1) < idx(n2)
+    elseif type(n1) == type(n) == type(n2)
+        if (idx(n1) == idx(n)) == (idx(n2) == idx(n))
+            idx(n1) > idx(n2)
+        else
+            idx(n1) < idx(n2)
+        end 
+    elseif type(n1) == type(n)
+        idx(n1) < idx(n)
+    else # type(n2) == type(n)
+        idx(n2) > idx(n)
+    end
+end
+
+
 function isfarsidenext(p::LinearSequence, i::Int)
     l, r = i, i
     lset, rset = Set{Int}(), Set{Int}()
@@ -134,11 +155,7 @@ function isfarsidenext(p::LinearSequence, i::Int)
 
     crossings = lset ∩ rset
     #@show lset rset l r p[l] p[r] getindex.((p,), lset) getindex.((p,), rset) crossings
-    # determine if p[l] < p[r] (wrt. p[i])
-    lr = ((type(p[l]) == type(p[r]) && idx(p[l]) < idx(p[r])) 
-        || (type(p[l]) == type(p[i]) && idx(p[l]) < idx(p[i]))
-        || (type(p[r]) == type(p[i]) && idx(p[r]) > idx(p[i]))) 
-    lr == iseven(length(crossings))
+    isnearer(p[l],p[r],p[i]) == iseven(length(crossings))
 end
 
 isfarsidenext(p::LinearSequence, n::FrameNode) = isfarsidenext(p, findframenode(n, p))
