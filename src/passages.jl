@@ -179,18 +179,19 @@ A `TwistPassage` represents the invertion of one loop
 struct TwistPassage <: Passage
     arg::FrameNode
     away::Bool
+    times::Int
 end
 
-@rule twist_p = r"[<>]" & fnode > (t,f) -> TwistPassage(f, t == ">")
+@rule twist_p = r"(>+)|(<+)"p & fnode > (t,f) -> TwistPassage(f, t[1] == '>', length(t))
 
 function Base.show(io::IO, f::TwistPassage)
-    print(io, f.away ? '>' : '<')
+    print(io, (f.away ? '>' : '<')^f.times)
     show(io, f.arg)
 end
 
 latex(io::IO, f::TwistPassage) = show(io, f)
 
-(f::TwistPassage)(p::LinearSequence) = twist(p, f.arg, f.away)
+(f::TwistPassage)(p::LinearSequence) = (for _ in 1:f.times; p = twist(p, f.arg, f.away) end; return p)
 
 
 #### Bilateral Passages
