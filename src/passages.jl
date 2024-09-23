@@ -296,16 +296,20 @@ end
 struct BilateralTwistPassage <: Passage
     arg::Tuple{Int,Int}
     away::Bool
+    times::Int
 end
 
-@rule b_twist_p = r"[<>]" & b_fnode > (t,f) -> BilateralTwistPassage(f, t == ">")
+@rule b_twist_p = r"(>+)|(<+)"p & b_fnode > (t,f) -> BilateralTwistPassage(f, t[1] == '>', length(t))
 
 Base.show(io::IO, f::BilateralTwistPassage) = print(io, f.away ? ">" : "<", _b_string(f.arg))
 
 latex(io::IO, f::BilateralTwistPassage) = print(io, f.away ? ">" : "<", _b_string(f.arg))
 
 function (f::BilateralTwistPassage)(p::LinearSequence)
-    p = twist(p, FrameNode(:L, f.arg), f.away)
-    p = twist(p, FrameNode(:R, f.arg), f.away)
+    for _ in 1:f.times
+        p = twist(p, FrameNode(:L, f.arg), f.away)
+        p = twist(p, FrameNode(:R, f.arg), f.away)
+    end
+    p
 end
 
