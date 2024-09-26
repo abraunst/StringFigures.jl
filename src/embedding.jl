@@ -150,7 +150,7 @@ Plots `p` using Tutte embedding. Parallel edges are then separated by slightly t
 * `kwd...`:            Additional options for gplot (`(;)`)
 """
 function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, 
-            labels=true, shadowc = HSLA(colorant"black", 0.6), fact=1.0, kwd...)
+            labels=true, shadowc = HSLA(colorant"black", 0.6), fact=1.0, nodelabelc=colorant"white", kwd...)
     n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
     index(x) = Didx[x]
  
@@ -209,7 +209,7 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
         NODESIZE=0.005, nodesize=[i ≤ n ? 1.0 : 0.0 for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
         NODELABELSIZE=2.0, nodelabel=labels ? @view(vlabels[1:nv(gover)]) : nothing, nodelabeldist=9, 
-        nodelabelc=colorant"white", kwd...
+        nodelabelc, kwd...
         )
 
     compose(pl3,pl2,pl1,pl0)

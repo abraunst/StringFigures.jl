@@ -54,9 +54,9 @@ function Base.show(io::IO, m::MIME"text/latex", s::StringCalculus)
     end
     for i in eachindex(s.seq)
         print(io, "{")
-        print(io, i == idx ? "\\blue{" : "{")
+        print(io, i == idx ? "{\\color{blue}{" : "{{")
         show(io, m, s.seq[i])
-        print(io, "}}")
+        print(io, "}}}")
         if s.seq[i] isa ExtendPassage
             print(io, " ")
         elseif !(i+1 ∈ eachindex(s.seq) && s.seq[i+1] isa ExtendPassage)
@@ -100,7 +100,7 @@ function Base.show(io::IO, m::MIME"text/latex", p::StringProcedure)
     idx = get(io, :passidx, -1)::Int
     print(io, "\$")
     io = IOContext(io, :inmath => true)
-    print(io, idx == 0 ? "\\blue{" : "{")
+    print(io, idx == 0 ? "{\\color{blue}{" : "{{")
     if p.initial == _O1 
         print(io, "O1")
     elseif p.initial == _OA
@@ -110,7 +110,7 @@ function Base.show(io::IO, m::MIME"text/latex", p::StringProcedure)
         show(io, p.initial)
         print(io,")")
     end
-    print(io, "}~::~")
+    print(io, "}}~::~")
     show(io, m, p.calculus)
     print(io, "\$")
 end
