@@ -132,21 +132,21 @@ end
 function isfarsidenext(p::LinearSequence, i::Int)
     l, r = i, i
     lset, rset = Set{Int}(), Set{Int}()
-    for k in 1:length(p)-1
-        n = p[i+k]
+    for k in 1:length(p) - 1
+        n = p[i + k]
         if n isa CrossNode
-            push!(rset, idx(n)) 
+            idx(n) ∈ rset ? delete!(rset, idx(n)) : push!(rset, idx(n))
         else
-            r = i+k
+            r = i + k
             break
         end
     end
-    for k in 1:length(p)-1
-        n = p[i-k]
+    for k in 1:length(p) - 1
+        n = p[i - k]
         if n isa CrossNode
-            push!(lset, idx(n))
+            idx(n) ∈ lset ? delete!(lset, idx(n)) : push!(lset, idx(n))
         else
-            l = i-k
+            l = i - k
             break
         end
     end

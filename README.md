@@ -60,8 +60,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule multi_pick_p = pick_pp[1:end] & pick_p
   @rule release_p = "D" & fnode
   @rule navaho_p = "N" & fnode
-  @rule twist_p = r"[<>]" & fnode
-
+  @rule twist_p = r"(>+)|(<+)"p & fnode
 
   @rule b_fnode = int & ("." & int)[0:1]
   @rule b_pick_p = b_fnode & r"[ou]"p & r"a?"p & r"\("p & b_fnode & r"[fn]"p & ")"
@@ -69,8 +68,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule b_multi_pick_p = (b_mpick_p1 & r":"p)[0:end] & b_pick_p
   @rule b_release_p = "D" & b_fnode
   @rule b_navaho_p = "N" & b_fnode
-  @rule b_twist_p = r"[<>]" & b_fnode
-
+  @rule b_twist_p = r"(>+)|(<+)"p & b_fnode
   ```
 
 * `Calculus`s (`calculus.jl`). Use it with `calc"xxx"`
@@ -115,7 +113,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
 * [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below. Example: $\overset{\longleftarrow}{L3}\left(\underline{L1n}\right)$
   * i.e. pass $L3$ (toward the executer) **over** all intermediate strings and pick up $L1n$ from below
   * This is encoded in plain text as `L3o(L1n)`
-* [X] Twist move
+* [X] Twist and multi-twist moves
 * [X] Pick from above (pick + twist)
 * [X] Three-dimensional picks, in which the finger moves also vertically to pass over some strings and below others (notation: e.g. `L1o(L2n):L1u(L2f):L1u(L3n)`)
 * [ ] Pick with non-standard arguments
