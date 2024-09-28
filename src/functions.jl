@@ -234,7 +234,7 @@ end
 
 "ϕ₃ simplifications (lemma 2c), based on string total length/tension"
 function simplify3(q::LinearSequence; k=0.5, mult=10^4)
-    ten = tension(q) + mult*length(q)
+    ten = tension(q; k) + mult*length(q)
     p = simplify12(q)
     p1 = p
     for i in eachindex(p)
