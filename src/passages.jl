@@ -6,6 +6,45 @@ The `Passage` type represents one passage or move in a string figure constructio
 """
 abstract type Passage end
 
+
+struct FrameRef
+    nodetype::Symbol
+    index::Int
+    loop::Symbol
+end
+
+type(f::FrameRef) = f.nodetype
+
+
+const refindices = Dict{Symbol, Int}(:l => 0, :m => 1, :u => 1000, :m1 => 1, :m2 => 2, :m3 => 3, 
+:m4 => 4, :m5 => 5, :m6 => 6, :m7 => 7, :m8 => 8, :m9 => 9, Symbol("") => 0)
+
+idx(f::FrameRef) = (f.index,refindices[f.loop])
+
+
+function Base.show(io::IO, n::FrameRef)
+    print(io, "$(string(n.loop))$(n.nodetype)$(n.index)")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", n::FrameRef)
+    print(io, "fref\"")
+    show(io, n)
+    print(io,"\"")
+end
+
+const reflabels = Dict{Symbol, String}(:l => "ℓ", :m => "m", :u => "u", :m1 => "m₁", :m2 => "m₂", :m3 => "m₃", 
+    :m4 => "m₄", :m5 => "m₅", :m6 => "m₆", :m7 => "m₇", :m8 => "m₈", :m9 => "m₉", Symbol("") => "")
+
+function latex(io::IO, n::FrameRef)
+    print(io, "$(reflabels[n.loop])$(n.nodetype)$(n.index)")
+end
+
+@rule fref = r"l|u|m1|m2|m3|m4|m5|m6|m7|m8|m9|m|" & r"[LR]" & int > (l,t,i) -> FrameRef(Symbol(t), i, Symbol(l))
+
+macro fref_str(s)
+    parsepeg(fref, s)
+end
+
 @rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p, b_multi_pick_p, b_pick_p, b_release_p, b_navaho_p, b_twist_p
 
 macro pass_str(s)
@@ -43,9 +82,9 @@ latex(io::IO, f::ExtendPassage) = show(io, f)
 """
 A `PickPassage` represents the action of picking a string with a given functor. 
 Its arguments are:
-- `fun::SeqNode`  : the functor (i.e. the picking finger)
+- `fun::FrameRef`  : the functor (i.e. the picking finger)
 - `away::Bool`    : on an "other hand" pick, if the first movement is away the executer (default) 
-- `arg::SeqNode`  : the argument (i.e. the finger holding the section of string being picked)
+- `arg::FrameRef`  : the argument (i.e. the finger holding the section of string being picked)
 - `near::Bool`    : is it the *near* portion of the string? 
 - `over::Bool`    : does the finger travels above all other string in order to reach it?
 - `above::Bool`   : does it pick the string from above?
@@ -59,7 +98,7 @@ one `near` the executer or not.
 struct PickPassage <: Passage
     fun::FrameNode
     away::Bool
-    arg::FrameNode
+    arg::FrameRef
     near::Bool
     over::Bool
     above::Bool
@@ -72,7 +111,7 @@ struct PickPassage <: Passage
 end
 
 
-@rule pick_p = fnode & r"[ou]"p & r"a?"p & r"t?"p & r"\("p & fnode & r"[fn]"p & ")" > (f,ou,a,t,_,g,fn,_) -> PickPassage(f,t == "",g,fn=="n",ou=="o",a=="a")
+@rule pick_p = fnode & r"[ou]"p & r"a?"p & r"t?"p & r"\("p & fref & r"[fn]"p & ")" > (f,ou,a,t,_,g,fn,_) -> PickPassage(f,t == "",g,fn=="n",ou=="o",a=="a")
 
 function Base.show(io::IO, f::PickPassage)
     show(io, f.fun)
@@ -90,7 +129,7 @@ function latex(io::IO, f::PickPassage)
     print(io, f.near ? "n" : "f", "}\\right)")
 end
 
-(f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.away, f.fun, f.arg, f.near, f.above)
+(f::PickPassage)(p::LinearSequence) = pick(p, f.over, f.away, f.fun, framenode(f.arg, p), f.near, f.above)
 
 """
 A `MultiPickPassage` represents the action of picking a string with a given functor. 
@@ -113,8 +152,9 @@ end
 
 function latex(io::IO, ff::MultiPickPassage)
     for f in ff.seq[1:end-1] 
-        arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(idx(f.fun) <= idx(f.arg) ? "right" : "left")arrow"
-        print(io,"\\$(f.over ? "over" : "under")set{$arrow}{", f.fun, "}")
+        fun, arg = framenode(f.fun, p), framenode(f.arg, p)
+        arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(idx(fun) <= idx(arg) ? "right" : "left")arrow"
+        print(io,"\\$(f.over ? "over" : "under")set{$arrow}{", fun, "}")
         print(io, "\\left(", f.arg, f.near ? "n" : "f", "\\right):")
     end 
     latex(io, ff.seq[end])
@@ -133,10 +173,10 @@ A `ReleasePassage` represents the release of one loop. It is denoted by the "□
 Storer, which we represent in ASCII with "D" (for delete) 
 """
 struct ReleasePassage <: Passage
-    arg::FrameNode
+    arg::FrameRef
 end
 
-@rule release_p = "D" & fnode > (_,f) -> ReleasePassage(f)
+@rule release_p = "D" & fref > (_,f) -> ReleasePassage(f)
 
 function Base.show(io::IO, f::ReleasePassage)
     print(io, "D")
@@ -145,12 +185,13 @@ end
 
 function latex(io::IO, f::ReleasePassage)
     print(io,"\\square ")
-    show(io, f.arg)
+    latex(io, f.arg)
 end
 
 function (f::ReleasePassage)(p::LinearSequence)
+    arg = framenode(f.arg, p)
     delete(p) do n
-        type(n) == type(f.arg) && idx(n)[1] == idx(f.arg)[1] && n >= f.arg
+        type(n) == type(arg) && idx(n)[1] == idx(arg)[1] && n >= arg
     end
 end
 
@@ -159,16 +200,16 @@ A `NavahoPassage` represents the release of the lower loop in a two-loop finger.
 It is denoted by the "N" symbol in Storer. 
 """
 struct NavahoPassage <: Passage
-    arg::FrameNode
+    arg::FrameRef
 end
 
-@rule navaho_p = "N" & fnode > (_,f) -> NavahoPassage(f)
+@rule navaho_p = "N" & fref > (_,f) -> NavahoPassage(f)
 
 Base.show(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
 latex(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
 
 function (f::NavahoPassage)(p::LinearSequence)
-    navaho(p, f.arg)
+    navaho(p, framenode(f.arg, p))
 end
 
 
@@ -177,7 +218,7 @@ end
 A `TwistPassage` represents the invertion of one loop
 """
 struct TwistPassage <: Passage
-    arg::FrameNode
+    arg::FrameRef
     away::Bool
     times::Int
 end
@@ -191,7 +232,7 @@ end
 
 latex(io::IO, f::TwistPassage) = show(io, f)
 
-(f::TwistPassage)(p::LinearSequence) = (for _ in 1:f.times; p = twist(p, f.arg, f.away) end; return p)
+(f::TwistPassage)(p::LinearSequence) = (for _ in 1:f.times; p = twist(p, framenode(f.arg, p), f.away) end; return p)
 
 
 #### Bilateral Passages
