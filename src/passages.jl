@@ -244,8 +244,7 @@ latex(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
 
 function (f::NavahoPassage)(p::LinearSequence)
     if isbilateral(f.arg)
-        p = navaho(p, left(f.arg))
-        navaho(p, right(f.arg))
+        left(f.arg)(right(f.arg)(p))
     else
         navaho(p, f.arg)
     end
