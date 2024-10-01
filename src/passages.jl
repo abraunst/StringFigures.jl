@@ -271,4 +271,19 @@ end
 
 latex(io::IO, f::TwistPassage) = show(io, f)
 
-(f::TwistPassage)(p::LinearSequence) = (for _ in 1:f.times; p = twist(p, framenode(f.arg, p), f.away) end; return p)
+function twist_helper(p::LinearSequence, arg, times, away)
+    for _ in 1:times
+        p = twist(p, framenode(arg, p), away) 
+    end
+    return p
+end
+
+function (f::TwistPassage)(p::LinearSequence)
+    if isbilateral(f.arg)
+        p = twist_helper(p, left(f.arg), f.times, f.away)
+        p = twist_helper(p, right(f.arg), f.times, f.away)
+    else
+        p = twist_helper(p, f.arg, f.times, f.away)
+    end
+    return p
+end
