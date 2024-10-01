@@ -94,18 +94,41 @@ function node_labels_and_fixed_positions(p::LinearSequence)
     vfixed = Int[]
     pfixed = fill(SVector(0.,0.), 0)
     vlabels = String[]
-    io = IOBuffer()
-    ioc = IOContext(io, :linseq => p)
+    #io = IOBuffer()
+    #ioc = IOContext(io, :linseq => p)
+
+    maxloop = Dict{Pair{Symbol,Int},Int}()
     for n in p
         if isframenode(n)
-            show(ioc, n)
-            s = String(take!(io))
+            key = n.nodetype => n.index
+            if !haskey(maxloop, key) || maxloop[key] < n.loop 
+                maxloop[key] = n.loop
+            end
+        end
+    end
+
+    function label(n::FrameNode)
+        pre = if n.loop == 0 && maxloop[n.nodetype => n.index] > 0
+            "ℓ"
+        elseif n.loop == 0
+            ""
+        elseif n.loop == maxloop[n.nodetype => n.index]
+            "u"
+        elseif maxloop[n.nodetype => n.index] == 2
+            "m"
+        else
+            "m" * ("₁","₂","₃","₄","₅","₆","₇","₈","₉")[n.loop]
+        end
+        "$(pre)$(type(n))$(n.index)"
+    end
+
+    for n in p
+        if isframenode(n)
             if !haskey(D, n)
                 i +=1; D[n] = i
                 push!(vfixed, i)
                 push!(pfixed, pos(n))
-                push!(vlabels, s)
-                #@show vlabels[end] pfixed[end]
+                push!(vlabels, label(n))
             end
         else
             n1 = CrossNode(type(n) == :U ? :O : :U, idx(n))
