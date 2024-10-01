@@ -21,7 +21,7 @@ struct FrameNode <: SeqNode
     loop::Int
     function FrameNode(type, idx::Int, loop = 0)
         idx ≥ 0 || throw(ArgumentError("Wrong index $idx"))
-        type ∈ (:L, :R) || throw(ArgumentError("Wrong type $type"))
+        type ∈ (:L, :R, Symbol("")) || throw(ArgumentError("Wrong type $type"))
         new(type, idx, loop)
     end
 end
