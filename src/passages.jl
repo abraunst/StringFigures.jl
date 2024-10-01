@@ -129,7 +129,7 @@ function latex(io::IO, f::PickPassage)
     print(io,"\\$(f.over ? "over" : "under")set{$arrow}{")
     print(io, f.fun)
     print(io, "}\\left($(f.above ? "\\over" : "\\under")line{")
-    print(io, f.arg)
+    latex(io, f.arg)
     print(io, f.near ? "n" : "f", "}\\right)")
 end
 
@@ -180,7 +180,9 @@ function latex(io::IO, ff::MultiPickPassage)
         fun, arg = f.fun, f.arg
         arrow = "\\$(type(f.fun) == type(f.arg) ? "l" : "L")ong$(fun.index <= arg.index ? "right" : "left")arrow"
         print(io,"\\$(f.over ? "over" : "under")set{$arrow}{", fun, "}")
-        print(io, "\\left(", f.arg, f.near ? "n" : "f", "\\right):")
+        print(io, "\\left(")
+        latex(io, f.arg)
+        print(io, f.near ? "n" : "f", "\\right):")
     end 
     latex(io, ff.seq[end])
 end
