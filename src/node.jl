@@ -28,6 +28,9 @@ end
 
 FrameNode(type, idx::Tuple{Int, Int}) = FrameNode(type, idx...)
 
+iscrossnode(n::SeqNode) = n isa CrossNode
+isframenode(n::SeqNode) = n isa FrameNode
+
 SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, idx)
 
 @rule int =  r"\d+" |> x -> parse(Int, x)

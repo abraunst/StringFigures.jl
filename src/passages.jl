@@ -234,7 +234,7 @@ A `NavahoPassage` represents the release of the lower loop in a two-loop finger.
 It is denoted by the "N" symbol in Storer. 
 """
 struct NavahoPassage <: Passage
-    arg::FrameRef
+    arg::FrameNode
 end
 
 @rule navaho_p = "N" & ffun > (_,f) -> NavahoPassage(f)
@@ -243,7 +243,12 @@ Base.show(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
 latex(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
 
 function (f::NavahoPassage)(p::LinearSequence)
-    navaho(p, framenode(f.arg, p))
+    if isbilateral(f.arg)
+        navaho(p, left(f.arg))
+        navaho(p, right(f.arg))
+    else
+        navaho(p, f.arg)
+    end
 end
 
 
