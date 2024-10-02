@@ -13,8 +13,5 @@ export LinearSequence, SeqNode, FrameNode, CrossNode, FrameRef,
         iscanonical, canonical, release, simplify, pick, twist,
         Passage, ExtendPassage, PickPassage, ReleasePassage, 
         TwistPassage, NavahoPassage, MultiPickPassage,
-        BilateralPickPassage, BilateralReleasePassage, 
-        BilateralTwistPassage, BilateralNavahoPassage,
-        BilateralMultiPickPassage,
         StringCalculus, StringProcedure
 end
