@@ -134,7 +134,7 @@ function latex(io::IO, f::PickPassage)
 end
 
 function (f::PickPassage)(p::LinearSequence)
-    if f.fun.nodetype == Symbol("")
+    if isbilateral(f.fun)
         p = pick(p, f.over, f.away, FrameNode(:L, f.fun.index, f.fun.loop), framenode(FrameRef(:L, f.arg.index, f.arg.loop), p), f.near, f.above)
         p = pick(p, f.over, f.away, FrameNode(:R, f.fun.index, f.fun.loop), framenode(FrameRef(:R, f.arg.index, f.arg.loop), p), f.near, f.above)
     else
@@ -166,7 +166,7 @@ isbilateral(f) = type(f) == Symbol("")
 function (f::MultiPickPassage)(p::LinearSequence)
     fun = f.seq[1].fun
     @assert all(==(fun), (x.fun for x in f.seq))
-    if fun.nodetype == Symbol("")
+    if isbilateral(fun)
         p = pick(p, left(fun), [(framenode(left(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
         pick(p, right(fun), [(framenode(right(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
     else
