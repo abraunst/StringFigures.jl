@@ -80,7 +80,7 @@ end
 
 function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     D = Dict{SeqNode, Int}()
-    function pos(n::FrameNode)
+    function pos(n)
         id,l = idx(n)
         θ = [-π/4; 0.0:π/12:π/4]
         if type(n) == :L
@@ -107,7 +107,7 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
         end
     end
 
-    function label(n::FrameNode)
+    function label(n)
         pre = if n.loop == 0 && maxloop[n.nodetype => n.index] > 0
             "ℓ"
         elseif n.loop == 0
@@ -117,7 +117,7 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
         elseif maxloop[n.nodetype => n.index] == 2
             "m"
         else
-            "m" * ("₁","₂","₃","₄","₅","₆","₇","₈","₉")[n.loop]
+            "m" * ('₁':'₉')[n.loop]
         end
         "$(pre)$(type(n))$(n.index)"
     end
@@ -169,11 +169,17 @@ Plots `p` using Tutte embedding. Parallel edges are then separated by slightly t
 * `rfact::Float64`:    Distance between parallel edges (`0.02`)
 * `randomize::Bool`:   Slightly randomize positions (`false`) 
 * `labels::Bool`:      Add labels to the plot (`true`)
+* `crossings::Bool`:   Should crossings be plotted
 * `shadowc::colorant`: Color of the string shadow (`colorant"black"`)
-* `kwd...`:            Additional options for gplot (`(;)`)
+* `stringc::colorant`: Color of the string (`colorant"white"`)
+* `kwd...`:            Additional options for gplot (`(;)`). See e.g. `background_color`.
+
+Example1: plot(proc"OA::DL1|")
+Example2: plot(proc"OA::DL1|"; shadowc="white", stringc="black", nodelabelc="black", background_color="white")
 """
 function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, crossings=false,
-            labels=true, shadowc = HSLA(colorant"black", 1.0), fact=1.0, nodelabelc=colorant"white", kwd...)
+            labels=true, shadowc = HSLA(colorant"black", 1.0), stringc=colorant"white", fact=1.0, 
+            nodelabelc=colorant"white", kwd...)
     n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p; crossings)
     index(x) = Didx[x]
  
@@ -220,19 +226,20 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, crossings=f
     end
     
     pl0 = gplot(g, locs_x, locs_y;
-        NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=1.0 * fact, edgestrokec=shadowc)
-    pl1 = gplot(gunder, locs_x, locs_y; NODESIZE=0.0, EDGELINEWIDTH=0.2*fact)
+        NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=1.0 * fact, edgestrokec=shadowc, kwd...)
+
+    pl1 = gplot(gunder, locs_x, locs_y;
+        NODESIZE=0.0, EDGELINEWIDTH=0.2*fact, edgestrokec=stringc)
         
     pl2 = gplot(gover, locs_x, locs_y;
-        NODELABELSIZE=0.0, NODESIZE=0.0, 
-        nodefillc=shadowc, EDGELINEWIDTH=1.0*fact, edgestrokec=shadowc)
+        NODELABELSIZE=0.0, NODESIZE=0.0, nodefillc=shadowc, EDGELINEWIDTH=1.0*fact, edgestrokec=shadowc)
 
     pl3 = gplot(gover, locs_x, locs_y;
-        EDGELINEWIDTH=0.2*fact, edgestrokec=colorant"white",
-        NODESIZE=[i ∈ vfixed ? 0.008 : (crossings ? 0.005 : 0.0) for i in 1:nv(g)],
-        nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
+        EDGELINEWIDTH=0.2*fact, edgestrokec=stringc,
+        NODESIZE=[i ∈ vfixed ? 0.008 : (crossings ? 0.002 : 0.0) for i in 1:nv(g)],
+        nodefillc=[i ∈ vfixed ? colorant"red" : stringc for i in 1:nv(g)],
         NODELABELSIZE=2.0, nodelabel=labels ? @view(vlabels[1:nv(gover)]) : nothing, nodelabeldist=9, 
-        nodelabelc, kwd...
+        nodelabelc
         )
 
     compose(pl3,pl2,pl1,pl0)
