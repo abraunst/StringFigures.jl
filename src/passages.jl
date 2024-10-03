@@ -6,26 +6,48 @@ The `Passage` type represents one passage or move in a string figure constructio
 """
 abstract type Passage end
 
+abstract type AbstractFrameRef end
 
-struct FrameRef
+struct FrameRef <: AbstractFrameRef
     nodetype::Symbol
     index::Int
     loop::Symbol
 end
 
+struct BiFrameRef <: AbstractFrameRef
+    index::Int
+    loop::Symbol
+end
+
+struct BiFrameNode <: AbstractFrameNode
+    index::Int
+    loop::Int
+end
+
+frameref(nodetype, index, loop) = nodetype == Symbol("") ? BiFrameRef(index, loop) : FrameRef(nodetype, index, loop)
+framenode(nodetype, index, loop = 0) = nodetype == Symbol("") ? BiFrameNode(index, loop) : FrameNode(nodetype, index, loop)
+
+type(f::BiFrameRef) = Symbol("")
 type(f::FrameRef) = f.nodetype
+type(f::BiFrameNode) = Symbol("")
+
+left(f::BiFrameNode) = FrameNode(:L, f.index, f.loop)
+right(f::BiFrameNode) = FrameNode(:R, f.index, f.loop)
+left(f::BiFrameRef) = FrameRef(:L, f.index, f.loop)
+right(f::BiFrameRef) = FrameRef(:R, f.index, f.loop)
+
 
 const refindices = Dict{Symbol, Int}(:l => 0, :m => 1, :u => 1000, :m1 => 1, :m2 => 2, :m3 => 3, 
 :m4 => 4, :m5 => 5, :m6 => 6, :m7 => 7, :m8 => 8, :m9 => 9, Symbol("") => 0)
 
-idx(f::FrameRef) = (f.index,refindices[f.loop])
+idx(f::AbstractFrameRef) = (f.index,refindices[f.loop])
 
 
-function Base.show(io::IO, n::FrameRef)
-    print(io, "$(string(n.loop))$(n.nodetype)$(n.index)")
-end
+Base.show(io::IO, n::AbstractFrameRef) = print(io, string(n.loop), type(n), n.index)
 
-function Base.show(io::IO, ::MIME"text/plain", n::FrameRef)
+Base.show(io::IO, n::BiFrameNode) = (print(io, n.index); iszero(n.loop) || print(io, string(n.loop)); nothing)
+
+function Base.show(io::IO, ::MIME"text/plain", n::AbstractFrameRef)
     print(io, "fref\"")
     show(io, n)
     print(io,"\"")
@@ -34,19 +56,19 @@ end
 const reflabels = Dict{Symbol, String}(:l => "ℓ", :m => "m", :u => "u", :m1 => "m₁", :m2 => "m₂", :m3 => "m₃", 
     :m4 => "m₄", :m5 => "m₅", :m6 => "m₆", :m7 => "m₇", :m8 => "m₈", :m9 => "m₉", Symbol("") => "")
 
-function latex(io::IO, n::FrameRef)
-    print(io, "$(reflabels[n.loop])$(n.nodetype)$(n.index)")
-end
+latex(io::IO, n::AbstractFrameRef) = print(io, reflabels[n.loop], type(n), n.index)
 
-@rule fref = r"l|u|m[1-9]?|" & r"[RL]?" & r"[0-9]" > (l,t,i) -> FrameRef(Symbol(t), parse(Int, i), Symbol(l))
+latex(io::IO, n::BiFrameNode) = (print(io, n.index); n.loop != 0 && print(io, n.loop); nothing)
 
-@rule ffun = r"[LR]?" & int > (t,d) -> FrameNode(Symbol(t), d)
+
+@rule fref = r"l|u|m[1-9]?|" & r"[RL]?" & r"[0-9]" > (l,t,i) -> frameref(Symbol(t), parse(Int, i), Symbol(l))
+
+@rule ffun = r"[LR]?" & int > (t,d) -> framenode(Symbol(t), d)
 
 macro fref_str(s)
     parsepeg(fref, s)
 end
 
-#@rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p, b_multi_pick_p, b_pick_p, b_release_p, b_navaho_p, b_twist_p
 @rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p
 
 macro pass_str(s)
@@ -97,21 +119,20 @@ pointing arrow "↓" if it picks the argument from above (the `above` flag). The
 `A` represents a framenode, appended with the letter `n` or `f` if the string picked is
 one `near` the executer or not. 
 """
-struct PickPassage <: Passage
-    fun::FrameNode
+struct PickPassage{FN,FR} <: Passage
+    fun::FN
     away::Bool
-    arg::FrameRef
+    arg::FR
     near::Bool
     over::Bool
     above::Bool
-    function PickPassage(fun,away,arg,near,over,above)
+    function PickPassage(fun::FN,away,arg::FR,near,over,above) where {FN,FR}
         if type(fun) == type(arg) 
             away = (idx(fun) < idx(arg))
         end
-        new(fun,away,arg,near,over,above)
+        new{FN,FR}(fun,away,arg,near,over,above)
     end
 end
-
 
 @rule pick_p = ffun & r"[ou]"p & r"a?"p & r"t?"p & r"\("p & fref & r"[fn]"p & ")" > (f,ou,a,t,_,g,fn,_) -> PickPassage(f,t == "",g,fn=="n",ou=="o",a=="a")
 
@@ -131,13 +152,11 @@ function latex(io::IO, f::PickPassage)
     print(io, f.near ? "n" : "f", "}\\right)")
 end
 
-function (f::PickPassage)(p::LinearSequence)
-    if isbilateral(f.fun)
-        p = pick(p, f.over, f.away, FrameNode(:L, f.fun.index, f.fun.loop), framenode(FrameRef(:L, f.arg.index, f.arg.loop), p), f.near, f.above)
-        p = pick(p, f.over, f.away, FrameNode(:R, f.fun.index, f.fun.loop), framenode(FrameRef(:R, f.arg.index, f.arg.loop), p), f.near, f.above)
-    else
-        p = pick(p, f.over, f.away, f.fun, framenode(f.arg, p), f.near, f.above)
-    end    
+(f::PickPassage{FrameNode,FrameRef})(p::LinearSequence) = pick(p, f.over, f.away, f.fun, framenode(f.arg, p), f.near, f.above)
+
+function (f::PickPassage{BiFrameNode,BiFrameRef})(p::LinearSequence)
+    p = pick(p, f.over, f.away, left(f.fun), framenode(left(f.arg), p), f.near, f.above)
+    p = pick(p, f.over, f.away, right(f.fun), framenode(right(f.arg), p), f.near, f.above)
 end
 
 """
@@ -145,18 +164,12 @@ A `MultiPickPassage` represents the action of picking a string with a given func
 Its arguments are:
 - `pass::Vector{PickPassage}` : the argument (i.e. the finger holding the section of string being picked)
 """
-struct MultiPickPassage <: Passage
-    seq::Vector{PickPassage}
+struct MultiPickPassage{T<:PickPassage} <: Passage
+    seq::Vector{T}
 end
 
 @rule pick_pp = pick_p & r":"p > (f,_) -> f 
-@rule multi_pick_p = pick_pp[1:end] & pick_p > (v,x)->MultiPickPassage(push!(v, x))
-
-
-left(f::FrameNode) = FrameNode(:L, f.index, f.loop)
-right(f::FrameNode) = FrameNode(:R, f.index, f.loop)
-left(f::FrameRef) = FrameRef(:L, f.index, f.loop)
-right(f::FrameRef) = FrameRef(:R, f.index, f.loop)
+@rule multi_pick_p = pick_pp[1:end] & pick_p > (v,x)->MultiPickPassage(push!([y for y in v], x))
 
 isbilateral(f) = type(f) == Symbol("")
 
@@ -193,12 +206,13 @@ function Base.show(io::IO, ff::MultiPickPassage)
     show(io, ff.seq[end])
 end
 
+
 """
 A `ReleasePassage` represents the release of one loop. It is denoted by the "□" symbol in 
 Storer, which we represent in ASCII with "D" (for delete) 
 """
-struct ReleasePassage <: Passage
-    arg::FrameRef
+struct ReleasePassage{F<:AbstractFrameRef} <: Passage
+    arg::F
 end
 
 @rule release_p = "D" & fref > (_,f) -> ReleasePassage(f)
@@ -214,27 +228,27 @@ function latex(io::IO, f::ReleasePassage)
 end
 
 
-function release(arg, p)
+function release(ref::FrameRef, p)
+    arg = framenode(ref, p)
     delete(p) do n
         type(arg) == type(n) && n.index == arg.index && n.loop >= arg.loop
     end
 end
 
-function (f::ReleasePassage)(p::LinearSequence)
-    if isbilateral(f.arg)
-        p = release(framenode(left(f.arg), p), p)
-        release(framenode(right(f.arg), p), p)
-    else
-        release(framenode(f.arg, p), p)
-    end
+(f::ReleasePassage{FrameRef})(p::LinearSequence) = release(f.arg, p)
+
+function (f::ReleasePassage{BiFrameRef})(p::LinearSequence)
+    p = release(left(f.arg), p)
+    p = release(right(f.arg), p)
 end
+
 
 """
 A `NavahoPassage` represents the release of the lower loop in a two-loop finger. 
 It is denoted by the "N" symbol in Storer. 
 """
-struct NavahoPassage <: Passage
-    arg::FrameNode
+struct NavahoPassage{F <: AbstractFrameNode} <: Passage
+    arg::F
 end
 
 @rule navaho_p = "N" & ffun > (_,f) -> NavahoPassage(f)
@@ -242,22 +256,19 @@ end
 Base.show(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
 latex(io::IO, f::NavahoPassage) = print(io, "N", f.arg)
 
-function (f::NavahoPassage)(p::LinearSequence)
-    if isbilateral(f.arg)
-        p = navaho(p, left(f.arg))
-        navaho(p, right(f.arg))
-    else
-        navaho(p, f.arg)
-    end
-end
+(f::NavahoPassage{FrameNode})(p::LinearSequence) = navaho(p, f.arg)
 
+function (f::NavahoPassage{BiFrameNode})(p::LinearSequence)
+    p = navaho(p, left(f.arg))
+    p = navaho(p, right(f.arg))
+end
 
 
 """
 A `TwistPassage` represents the invertion of one loop
 """
-struct TwistPassage <: Passage
-    arg::FrameRef
+struct TwistPassage{T <: AbstractFrameRef} <: Passage
+    arg::T
     away::Bool
     times::Int
 end
@@ -278,12 +289,9 @@ function twist_helper(p::LinearSequence, arg, times, away)
     return p
 end
 
-function (f::TwistPassage)(p::LinearSequence)
-    if isbilateral(f.arg)
-        p = twist_helper(p, left(f.arg), f.times, f.away)
-        p = twist_helper(p, right(f.arg), f.times, f.away)
-    else
-        p = twist_helper(p, f.arg, f.times, f.away)
-    end
-    return p
+(f::TwistPassage{FrameRef})(p::LinearSequence) = twist_helper(p, f.arg, f.times, f.away)
+
+function (f::TwistPassage{BiFrameRef})(p::LinearSequence)
+    p = twist_helper(p, left(f.arg), f.times, f.away)
+    p = twist_helper(p, right(f.arg), f.times, f.away)
 end
