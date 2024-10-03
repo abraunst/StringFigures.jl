@@ -34,7 +34,7 @@ test StringFigures
 
 Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by a PEG using the `PEG.jl` library. The full grammar is shown below.
 
-* `SeqNode`s (`node.jl`). Use it with `node"xxx"`
+* `SeqNode`s (`node.jl`). A sequence node is either a `FrameNode` (i.e. a finger, or a loop in a finger), or a `CrossNode`, i.e. a crossing in the 2D representation of the 3D string figure. Example: `node"L1"`, representing the left thumb.
 
   ```julia
   @rule int =  r"\d+"
@@ -43,42 +43,34 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule snode = fnode, xnode
   ```
 
-* `LinearSequence` (`linearsequence.jl`). Use it with `seq"xxx"`.
+* `LinearSequence` (`linearsequence.jl`). A linear sequence is a 2D layout of a string figure. It is a sequence of `SeqNode`s, so that following the string you encounter, sequentially, each node in the `LinearSequence`. `CrossNode`s appear in pairs, e.g. `x10(0)` and `x10(U)`, meaning respectively that one goes on the upper string and the lower string in the crossing. Example: `seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"` which is Opening A, i.e. OA. You can also graphically display a linear sequence with the function `plot`.
 
   ```julia
   @rule snodec = snode & ":"
   @rule linseq = (snodec[*] & snode)
   ```
 
-* `Passage`s (`passage.jl`). Use it with `pass"xxx"`
+* `Passage`s (`passage.jl`). A passage is one coordinated movement of the finger(s), which modifies the figure in some way. E.g. `pass"DL1"`, releasing all strings on the left thumb.
 
   ```julia
-  @rule passage = extend_p, twist_p, release_p, navaho_p, pick_p, b_pick_p, b_release_p, b_twist_p, b_navaho_p
+  @rule passage = extend_p, twist_p, release_p, navaho_p, pick_p
   @rule extend_p = "|" & r"!*"p
-  @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fnode & r"[fn]"p & ")"
+  @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fref & r"[fn]"p & ")"
   @rule pick_pp = pick_p & r":"p 
   @rule multi_pick_p = pick_pp[1:end] & pick_p
-  @rule release_p = "D" & fnode
+  @rule release_p = "D" & fref
   @rule navaho_p = "N" & fnode
-  @rule twist_p = r"(>+)|(<+)"p & fnode
-
-  @rule b_fnode = int & ("." & int)[0:1]
-  @rule b_pick_p = b_fnode & r"[ou]"p & r"a?"p & r"\("p & b_fnode & r"[fn]"p & ")"
-  @rule b_mpick_p1 = b_fnode & r"[ou]"p & r"\("p & b_fnode & r"[fn]"p & ")"
-  @rule b_multi_pick_p = (b_mpick_p1 & r":"p)[0:end] & b_pick_p
-  @rule b_release_p = "D" & b_fnode
-  @rule b_navaho_p = "N" & b_fnode
-  @rule b_twist_p = r"(>+)|(<+)"p & b_fnode
+  @rule twist_p = r"(>+)|(<+)"p & fref
   ```
 
-* `Calculus`s (`calculus.jl`). Use it with `calc"xxx"`
+* `Calculus`s (`calculus.jl`). A `Calculus` is a sequence of `Passage`s, specifying a multi-step transformation of a `LinearSequence`. E.g. `calc"DL1#DL2"`, releasing all strings on both thumbs.
 
   ```julia
   @rule passages = (passage & r"#?"p)
   @rule calculus = r""p & passages[*]
   ```
   
-* `StringProcedure` (`calculus.jl`). Use it with `proc"xxx"`
+* `StringProcedure` (`calculus.jl`). A `StringProcedure` is a starting position plus a `Calculus`. Example: `OA::DL2#DR2#|` which goes back to Opening 1 from Opening A. You can plot a `StringProcedure` with the function plot, which plots all intermediate positions.
 
   ```julia
   @rule O1 = r"O1"p

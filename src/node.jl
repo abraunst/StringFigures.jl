@@ -10,12 +10,13 @@ struct CrossNode <: SeqNode
     function CrossNode(type, idx)
         idx ≥ 0 || throw(ArgumentError("Wrong index $idx"))
         type ∈ (:U, :O) || throw(ArgumentError("Wrong type $type"))
-        #type ∉ (:L, :R) || 1 ≤ idx ≤ 5 || throw(ArgumentError("Wrong index $idx"))
         new(type, idx)
     end
 end
 
-struct FrameNode <: SeqNode
+abstract type AbstractFrameNode <: SeqNode end
+
+struct FrameNode <: AbstractFrameNode
     nodetype::Symbol
     index::Int
     loop::Int
@@ -28,6 +29,9 @@ end
 
 FrameNode(type, idx::Tuple{Int, Int}) = FrameNode(type, idx...)
 
+iscrossnode(n::SeqNode) = n isa CrossNode
+isframenode(n::SeqNode) = n isa FrameNode
+
 SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, idx)
 
 @rule int =  r"\d+" |> x -> parse(Int, x)
@@ -35,13 +39,11 @@ SeqNode(type::Symbol, idx) = (type ∈ (:O, :U) ? CrossNode : FrameNode)(type, i
 @rule xnode = "x" & int & "(" & r"[0U]" & ")" > (_,d,_,t,_) -> CrossNode(t == "U" ? :U : :O, d)
 @rule snode = fnode, xnode
 
-
 inverse(n::CrossNode) = CrossNode(type(n) == :O ? :U : :O, n.index)
-idx(n::SeqNode) = n.index
+idx(n::CrossNode) = n.index
 type(n::SeqNode) = n.nodetype
-idx(n::FrameNode) = (n.index, n.loop)
+idx(n::AbstractFrameNode) = (n.index, n.loop)
 functor(n::FrameNode) = (n.nodetype, n.index)
-functor(n::CrossNode) = nothing
 loop(n::FrameNode) = n.loop
 
 Base.:(<)(s::FrameNode, t::FrameNode) = idx(s) < idx(t)

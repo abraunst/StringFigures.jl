@@ -14,6 +14,25 @@ struct StringCalculus
     seq::Vector{Passage}
 end
 
+
+function framenode(f::FrameRef, p::LinearSequence)
+    loop = f.loop == :l || f.loop == Symbol("") ? 0 :
+        f.loop == :m ? 1 :
+        f.loop == :u ? maximum(n->(n.nodetype == f.nodetype && n.index == f.index ? n.loop : -1), p; init=-1) :
+        f.loop == :m1 ? 1 :
+        f.loop == :m2 ? 2 :
+        f.loop == :m3 ? 3 :
+        f.loop == :m4 ? 4 :
+        f.loop == :m5 ? 5 :
+        f.loop == :m6 ? 6 :
+        f.loop == :m7 ? 7 :
+        f.loop == :m8 ? 8 :
+        f.loop == :m9 ? 9 : -1
+    @assert loop ≥ 0
+    FrameNode(f.nodetype, f.index, loop)
+end
+
+
 @rule passages = (passage & r"#?"p) > (x,_) -> x
 @rule calculus = r""p & passages[*]  > (_,x) -> StringCalculus(x)
 

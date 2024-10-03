@@ -21,3 +21,9 @@ end
     @test proc"O1::>L1#D1|" |> last == proc"O1::D1|" |> last
     @test proc"O1::1o(5f)#NL1#DL1|" |> last == proc"O1::1o(5f)#DL1|" |> last
 end
+
+@testset "bilateral" begin
+    @test proc"OA::>>>>1"[end] == proc"OA::>>>>L1#>>>>R1"[end]
+    @test proc"OA::1ua(2f)"[end] == proc"OA::L1ua(L2f)#R1ua(R2f)"[end]
+    @test proc"OA::N1"[end] == proc"OA::NL1#NR1"[end]
+end

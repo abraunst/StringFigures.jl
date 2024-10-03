@@ -88,8 +88,6 @@ end
 
 isadjacent(p::LinearSequence, i, j) = abs(i-j) ∈ (1,length(p) - 1)
 
-isframenode(n::SeqNode) = n isa FrameNode
-
 function findframenode(f::FrameNode, p)
     i,u = 0,0
     for (j,n) in pairs(p)
