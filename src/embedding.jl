@@ -78,7 +78,7 @@ function spring_layout_fixed(g::AbstractGraph;
 end
 
 
-function node_labels_and_fixed_positions(p::LinearSequence)
+function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     D = Dict{SeqNode, Int}()
     function pos(n::FrameNode)
         id,l = idx(n)
@@ -134,7 +134,7 @@ function node_labels_and_fixed_positions(p::LinearSequence)
             n1 = CrossNode(type(n) == :U ? :O : :U, idx(n))
             if !haskey(D, n1)
                 i += 1; D[n] = i
-                push!(vlabels, "x$(idx(n))")
+                push!(vlabels, crossings ? "x$(idx(n))" : "")
             else
                 D[n] = D[n1]
             end
@@ -172,9 +172,9 @@ Plots `p` using Tutte embedding. Parallel edges are then separated by slightly t
 * `shadowc::colorant`: Color of the string shadow (`colorant"black"`)
 * `kwd...`:            Additional options for gplot (`(;)`)
 """
-function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, 
-            labels=true, shadowc = HSLA(colorant"black", 0.6), fact=1.0, nodelabelc=colorant"white", kwd...)
-    n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
+function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, crossings=false,
+            labels=true, shadowc = HSLA(colorant"black", 1.0), fact=1.0, nodelabelc=colorant"white", kwd...)
+    n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p; crossings)
     index(x) = Didx[x]
  
     locs_fixed = reduce(vcat, p' for p in pfixed)
@@ -220,20 +220,21 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false,
     end
     
     pl0 = gplot(g, locs_x, locs_y;
-        NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=0.8 * fact, edgestrokec=shadowc)
+        NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=1.0 * fact, edgestrokec=shadowc)
     pl1 = gplot(gunder, locs_x, locs_y; NODESIZE=0.0, EDGELINEWIDTH=0.2*fact)
         
     pl2 = gplot(gover, locs_x, locs_y;
-        NODELABELSIZE=0.0, NODESIZE=0.01, nodesize=[i < n ? 1.0 : 0.0 for i=1:nv(g)], 
+        NODELABELSIZE=0.0, NODESIZE=0.0, 
         nodefillc=shadowc, EDGELINEWIDTH=1.0*fact, edgestrokec=shadowc)
 
     pl3 = gplot(gover, locs_x, locs_y;
         EDGELINEWIDTH=0.2*fact, edgestrokec=colorant"white",
-        NODESIZE=0.005, nodesize=[i ≤ n ? 1.0 : 0.0 for i in 1:nv(g)],
+        NODESIZE=[i ∈ vfixed ? 0.008 : (crossings ? 0.005 : 0.0) for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : colorant"white" for i in 1:nv(g)],
         NODELABELSIZE=2.0, nodelabel=labels ? @view(vlabels[1:nv(gover)]) : nothing, nodelabeldist=9, 
         nodelabelc, kwd...
         )
 
     compose(pl3,pl2,pl1,pl0)
+    #compose(pl2)
 end
