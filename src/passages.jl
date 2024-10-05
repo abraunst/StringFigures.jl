@@ -296,7 +296,6 @@ function (f::TwistPassage{BiFrameRef})(p::LinearSequence)
     p = twist_helper(p, right(f.arg), f.times, f.away)
 end
 
-
 struct PowerPassage{P} <: Passage
     f::P
     n::Int
@@ -310,10 +309,10 @@ end
 
 Base.show(io::IO, f::PowerPassage) = print(io, "[", f.f, "]^", f.n)
 
-@rule power_p = "[" & passage & "]^" & int > (_,f,_,n)->PowerPassage(f,n)
+@rule power_p = "[" & calculus & "]^" & int > (_,f,_,n)->PowerPassage(f,n)
 
 """
-A `PowerPassage` is just the repetition of another passage
+A `PowerPassage` is just the repetition of another passage or sequence of passages
 """
 function (f::PowerPassage)(p::LinearSequence)
     for _ in 1:f.n

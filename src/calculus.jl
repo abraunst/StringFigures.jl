@@ -52,9 +52,9 @@ Base.:(^)(s::StringCalculus, k::Integer) = StringCalculus(reduce(vcat, (s.seq fo
 
 (s::StringCalculus)(p::LinearSequence) = reduce((x,h)->h(x), s.seq; init = p)
 
-Base.show(io::IO, s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), " # "), "\"")
+Base.show(io::IO, ::MIME"text/plain", s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), " # "), "\"")
 
-function Base.show(io::IO, ::MIME"text/plain", s::StringCalculus)
+function Base.show(io::IO, s::StringCalculus)
     t = map(eachindex(s.seq)) do i
         o = string(s.seq[i])
         s.seq[i] isa ExtendPassage && return o
