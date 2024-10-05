@@ -94,8 +94,6 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     vfixed = Int[]
     pfixed = fill(SVector(0.,0.), 0)
     vlabels = String[]
-    #io = IOBuffer()
-    #ioc = IOContext(io, :linseq => p)
 
     maxloop = Dict{Pair{Symbol,Int},Int}()
     for n in p
