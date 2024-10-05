@@ -303,7 +303,7 @@ end
 
 function latex(io::IO, f::PowerPassage)
     print(io, "\\left[")
-    latex(io, f.f)
+    show(io, MIME"text/latex"(), f.f)
     print(io, "\\right]^{", f.n, "}")
 end
 

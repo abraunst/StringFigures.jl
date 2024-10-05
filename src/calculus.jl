@@ -33,7 +33,7 @@ function framenode(f::FrameRef, p::LinearSequence)
 end
 
 
-@rule passages = (passage & r"#?"p) > (x,_) -> x
+@rule passages = (passage & r""p & r"#?"p) > (x,_,_) -> x
 @rule calculus = r""p & passages[*]  > (_,x) -> StringCalculus(x)
 
 Base.length(c::StringCalculus) = length(c.seq)
