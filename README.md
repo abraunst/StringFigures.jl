@@ -59,11 +59,17 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule linseq = (snodec[*] & snode)
   ```
 
-* A functor is the part executing an action, typically a finger. It may be lateral or bilateral, meaning that both symmetric parts will be executing the same action
+* A functor is the part executing an action, typically a finger. It may be lateral or bilateral, meaning that both symmetric parts will be executing the same action.
+
+  ```julia
   @rule ffun = r"[LR]?" & int
+  ```
 
 * A `FrameRef` is a reference to one string section attached to a `FrameNode` `f`. `l`,`m`,`u` denote respectively the lowest, middle or top string on `f`. If there are more than 3 strings on `f`, then the second, third, etc are refered to as `m1`, `m2`, ...
+
+  ```julia
   @rule fref = r"l|u|m[1-9]?|" & r"[RL]?" & r"[0-9]"
+  ```
 
 * `Passage`s (`passage.jl`). A passage is one coordinated movement of the finger(s), which modifies the figure in some way. E.g. `pass"DL1"`, releasing all strings on the left thumb.
 
