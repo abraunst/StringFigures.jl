@@ -34,7 +34,7 @@ Create and plot a simple figure. Type the following into a jupyter notebook cell
 
 ```julia
 using StringFigures
-OA = proc"OA::"
+OA = proc"OA::DR2"
 println(OA[end])
 plot(OA)
 ```
@@ -57,6 +57,12 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   ```julia
   @rule snodec = snode & ":"
   @rule linseq = (snodec[*] & snode)
+  ```
+
+* Some standard openings have been already defined, and can be retrieved with `open"O0", open"O1", open"OA"`.
+
+  ```julia
+  @rule opening = "O" & r"[0-9A-Z]*"p
   ```
 
 * A functor is the part executing an action, typically a finger. It may be lateral or bilateral, meaning that both symmetric parts will be executing the same action.
@@ -94,10 +100,8 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
 * `StringProcedure` (`calculus.jl`). A `StringProcedure` is a starting position plus a `Calculus`. Example: `OA::DL2#DR2#|` which goes back to Opening 1 from Opening A. You can plot a `StringProcedure` with the function plot, which plots all intermediate positions.
 
   ```julia
-  @rule O1 = r"O1"p
-  @rule OA = r"OA"p
-  @rule linseqp = "(" & linseq & ")"
-  @rule procedure = ((linseqp,O1,OA) & r"::"p & calculus)
+  @rule parenseq = "(" & linseq & ")"
+  @rule procedure = ((parenseq,opening) & r"::"p & calculus)
   ```
 
 ## Progress
