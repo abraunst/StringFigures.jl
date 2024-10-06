@@ -302,6 +302,7 @@ struct PowerPassage{P} <: Passage
 end
 
 function latex(io::IO, f::PowerPassage)
+    io = IOContext(io, :inmath => true)
     print(io, "\\left[")
     show(io, MIME"text/latex"(), f.f)
     print(io, "\\right]^{", f.n, "}")
