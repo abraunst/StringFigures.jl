@@ -30,7 +30,16 @@ To run tests in [test/runtests.jl](./test/runtests.jl):
 test StringFigures
 ```
 
-## Grammar
+Create and plot a simple figure. Type the following into a jupyter notebook cell and execute it.
+
+```julia
+using StringFigures
+OA = proc"OA::"
+println(OA[end])
+plot(OA)
+```
+
+## StringFigure Grammar
 
 Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by a PEG using the `PEG.jl` library. The full grammar is shown below.
 
@@ -50,16 +59,22 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule linseq = (snodec[*] & snode)
   ```
 
+* A functor is the part executing an action, typically a finger. It may be lateral or bilateral, meaning that both symmetric parts will be executing the same action
+  @rule ffun = r"[LR]?" & int
+
+* A `FrameRef` is a reference to one string section attached to a `FrameNode` `f`. `l`,`m`,`u` denote respectively the lowest, middle or top string on `f`. If there are more than 3 strings on `f`, then the second, third, etc are refered to as `m1`, `m2`, ...
+  @rule fref = r"l|u|m[1-9]?|" & r"[RL]?" & r"[0-9]"
+
 * `Passage`s (`passage.jl`). A passage is one coordinated movement of the finger(s), which modifies the figure in some way. E.g. `pass"DL1"`, releasing all strings on the left thumb.
 
   ```julia
-  @rule passage = extend_p, twist_p, release_p, navaho_p, pick_p
+  @rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p
   @rule extend_p = "|" & r"!*"p
-  @rule pick_p = fnode & r"[ou]"p & r"a?"p & r"\("p & fref & r"[fn]"p & ")"
-  @rule pick_pp = pick_p & r":"p 
+  @rule pick_p = ffun & r"[ou]"p & r"a?"p & r"t?"p & r"\("p & fref & r"[fn]"p & ")"
+  @rule pick_pp = pick_p & r":"p
   @rule multi_pick_p = pick_pp[1:end] & pick_p
   @rule release_p = "D" & fref
-  @rule navaho_p = "N" & fnode
+  @rule navaho_p = "N" & ffun
   @rule twist_p = r"(>+)|(<+)"p & fref
   ```
 
@@ -110,8 +125,10 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
 * [X] Three-dimensional picks, in which the finger moves also vertically to pass over some strings and below others (notation: e.g. `L1o(L2n):L1u(L2f):L1u(L3n)`)
 * [ ] Pick with non-standard arguments
 * [X] Navaho release move
+* [X] Power Passage
 * [X] $\phi_3$ passages and heuristics to decide when to apply it
 * [x] Multiple loops in a single Ln or Rn
+* [x] u,l,m,mx notation
 * [ ] Non-finger functors
 * [x] Pick from non-empty framenode
 * [x] Syntactic sugar for passages

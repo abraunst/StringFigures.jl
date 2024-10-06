@@ -50,6 +50,7 @@ function simplify12(p::LinearSequence)
             if isadjacent(D2[j], i)
                 push!(rem, i)
                 push!(rem, D2[j])
+                break
             end
             # lemma 2b
             if j > 1 &&
@@ -59,6 +60,7 @@ function simplify12(p::LinearSequence)
                 push!(rem, D1[j-1])
                 push!(rem, D2[j])
                 push!(rem, D2[j-1])
+                break
             end
         end
         isempty(rem) && break

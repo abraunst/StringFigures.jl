@@ -33,7 +33,7 @@ function framenode(f::FrameRef, p::LinearSequence)
 end
 
 
-@rule passages = (passage & r"#?"p) > (x,_) -> x
+@rule passages = (passage & r""p & r"#?"p) > (x,_,_) -> x
 @rule calculus = r""p & passages[*]  > (_,x) -> StringCalculus(x)
 
 Base.length(c::StringCalculus) = length(c.seq)
@@ -52,9 +52,9 @@ Base.:(^)(s::StringCalculus, k::Integer) = StringCalculus(reduce(vcat, (s.seq fo
 
 (s::StringCalculus)(p::LinearSequence) = reduce((x,h)->h(x), s.seq; init = p)
 
-Base.show(io::IO, s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), " # "), "\"")
+Base.show(io::IO, ::MIME"text/plain", s::StringCalculus) = print(io, "calc\"", join(string.(s.seq), " # "), "\"")
 
-function Base.show(io::IO, ::MIME"text/plain", s::StringCalculus)
+function Base.show(io::IO, s::StringCalculus)
     t = map(eachindex(s.seq)) do i
         o = string(s.seq[i])
         s.seq[i] isa ExtendPassage && return o
@@ -101,12 +101,10 @@ struct StringProcedure
     initial::LinearSequence
     calculus::StringCalculus
 end
-_O1 = seq"L1:L5:R5:R1"
-_OA = seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
-@rule O1 = r"O1"p |> _ -> _O1
-@rule OA = r"OA"p |> _ -> _OA
-@rule linseqp = "(" & linseq & ")" > (_,s,_) -> s
-@rule procedure = ((linseqp,O1,OA) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
+
+@rule parenseq = "(" & linseq & ")" > (_,s,_)->s 
+
+@rule procedure = ((parenseq,opening) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
 
 macro proc_str(s)
     parsepeg(procedure, s)
@@ -115,24 +113,33 @@ end
 (::Colon)(s::LinearSequence, c::StringCalculus) = StringProcedure(s, c)
 (::Colon)(s::LinearSequence, c::AbstractString) = StringProcedure(s, parsepeg(calculus, c))
 
+
+function initialstring(seq::LinearSequence)
+    for (name, s) in pairs(Openings)
+        if seq == s
+            return "O"*name
+        end
+    end
+    return "($(seq))"
+end
+
 function Base.show(io::IO, m::MIME"text/latex", p::StringProcedure)
     idx = get(io, :passidx, -1)::Int
     print(io, "\$")
     io = IOContext(io, :inmath => true)
     print(io, idx == 0 ? "{\\color{blue}{" : "{{")
-    if p.initial == _O1 
-        print(io, "O1")
-    elseif p.initial == _OA
-        print(io, "OA")
-    else
-        print(io,"(")
-        show(io, p.initial)
-        print(io,")")
-    end
+    print(io, initialstring(p.initial))
     print(io, "}}~::~")
     show(io, m, p.calculus)
     print(io, "\$")
 end
+
+function Base.show(io::IO, ::MIME"text/plain", p::StringProcedure)
+    print(io, "proc\"", initialstring(p.initial), "::", p.calculus, "\"")
+end
+
+
+### Indexed procedure, used to plot sequence of figures
 
 struct IndexedProcedure
     p::StringProcedure

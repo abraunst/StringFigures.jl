@@ -69,7 +69,7 @@ macro fref_str(s)
     parsepeg(fref, s)
 end
 
-@rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p
+@rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p, power_p
 
 macro pass_str(s)
     parsepeg(passage, s)
@@ -152,9 +152,12 @@ function latex(io::IO, f::PickPassage)
     print(io, f.near ? "n" : "f", "}\\right)")
 end
 
-(f::PickPassage{FrameNode,FrameRef})(p::LinearSequence) = pick(p, f.over, f.away, f.fun, framenode(f.arg, p), f.near, f.above)
+const LateralPickPassage = PickPassage{FrameNode,FrameRef}
+const BiPickPassage = PickPassage{BiFrameNode,BiFrameRef}
 
-function (f::PickPassage{BiFrameNode,BiFrameRef})(p::LinearSequence)
+(f::LateralPickPassage)(p::LinearSequence) = pick(p, f.over, f.away, f.fun, framenode(f.arg, p), f.near, f.above)
+
+function (f::BiPickPassage)(p::LinearSequence)
     p = pick(p, f.over, f.away, left(f.fun), framenode(left(f.arg), p), f.near, f.above)
     p = pick(p, f.over, f.away, right(f.fun), framenode(right(f.arg), p), f.near, f.above)
 end
@@ -171,18 +174,15 @@ end
 @rule pick_pp = pick_p & r":"p > (f,_) -> f 
 @rule multi_pick_p = pick_pp[1:end] & pick_p > (v,x)->MultiPickPassage(push!([y for y in v], x))
 
-isbilateral(f) = type(f) == Symbol("")
+function (f::MultiPickPassage{LateralPickPassage})(p::LinearSequence)
+    @assert all(==(f.seq[begin].fun), (x.fun for x in f.seq))
+    pick(p, f.seq[begin].fun, [(framenode(x.arg, p), x.near, x.over) for x in f.seq], f.seq[end].above)
+end
 
-
-function (f::MultiPickPassage)(p::LinearSequence)
-    fun = f.seq[1].fun
-    @assert all(==(fun), (x.fun for x in f.seq))
-    if isbilateral(fun)
-        p = pick(p, left(fun), [(framenode(left(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
-        pick(p, right(fun), [(framenode(right(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
-    else
-        pick(p, fun, [(framenode(x.arg, p), x.near, x.over) for x in f.seq], f.seq[end].above)
-    end
+function (f::MultiPickPassage{BiPickPassage})(p::LinearSequence)
+    @assert all(==(f.seq[begin].fun), (x.fun for x in f.seq))
+    p = pick(p, left(f.seq[begin].fun), [(framenode(left(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
+    p = pick(p, right(f.seq[begin].fun), [(framenode(right(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
 end
 
 
@@ -265,7 +265,7 @@ end
 
 
 """
-A `TwistPassage` represents the invertion of one loop
+A `TwistPassage` represents the inversion of one loop
 """
 struct TwistPassage{T <: AbstractFrameRef} <: Passage
     arg::T
@@ -294,4 +294,30 @@ end
 function (f::TwistPassage{BiFrameRef})(p::LinearSequence)
     p = twist_helper(p, left(f.arg), f.times, f.away)
     p = twist_helper(p, right(f.arg), f.times, f.away)
+end
+
+struct PowerPassage{P} <: Passage
+    f::P
+    n::Int
+end
+
+function latex(io::IO, f::PowerPassage)
+    io = IOContext(io, :inmath => true)
+    print(io, "\\left[")
+    show(io, MIME"text/latex"(), f.f)
+    print(io, "\\right]^{", f.n, "}")
+end
+
+Base.show(io::IO, f::PowerPassage) = print(io, "[", f.f, "]^", f.n)
+
+@rule power_p = "[" & calculus & "]^" & int > (_,f,_,n)->PowerPassage(f,n)
+
+"""
+A `PowerPassage` is just the repetition of another passage or sequence of passages
+"""
+function (f::PowerPassage)(p::LinearSequence)
+    for _ in 1:f.n
+        p = f.f(p)
+    end
+    p
 end

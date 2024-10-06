@@ -7,10 +7,15 @@ struct LinearSequence
 end
 
 @rule snodec = snode & ":" > (x,_) -> x
+@rule opening = "O" & r"[0-9A-Z]*"p > (_, o) -> Openings[o] 
 @rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
 
 macro seq_str(s)
     parsepeg(linseq, s)
+end
+
+macro open_str(s)
+    parsepeg(opening, s)
 end
 
 macro storer_str(s)
@@ -194,3 +199,8 @@ function Base.show(io::IO, p::LinearSequence)
     show(io, p[end])
 end
 
+const Openings = Dict(
+    "1" => seq"L1:L5:R5:R1",
+    "A" => seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1",
+    "0" => seq"L2:R2"
+)
