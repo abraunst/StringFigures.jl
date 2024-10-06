@@ -175,14 +175,14 @@ end
 @rule multi_pick_p = pick_pp[1:end] & pick_p > (v,x)->MultiPickPassage(push!([y for y in v], x))
 
 function (f::MultiPickPassage{LateralPickPassage})(p::LinearSequence)
-    @assert all(==(f.fun), (x.fun for x in f.seq))
-    pick(p, f.fun, [(framenode(x.arg, p), x.near, x.over) for x in f.seq], f.seq[end].above)
+    @assert all(==(f.seq[begin].fun), (x.fun for x in f.seq))
+    pick(p, f.seq[begin].fun, [(framenode(x.arg, p), x.near, x.over) for x in f.seq], f.seq[end].above)
 end
 
 function (f::MultiPickPassage{BiPickPassage})(p::LinearSequence)
-    @assert all(==(f.fun), (x.fun for x in f.seq))
-    p = pick(p, left(f.fun), [(framenode(left(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
-    p = pick(p, right(f.fun), [(framenode(right(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
+    @assert all(==(f.seq[begin].fun), (x.fun for x in f.seq))
+    p = pick(p, left(f.seq[begin].fun), [(framenode(left(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
+    p = pick(p, right(f.seq[begin].fun), [(framenode(right(x.arg), p), x.near, x.over) for x in f.seq], f.seq[end].above)
 end
 
 

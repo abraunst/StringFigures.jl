@@ -201,5 +201,6 @@ end
 
 const Openings = Dict(
     "1" => seq"L1:L5:R5:R1",
-    "A" => seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
+    "A" => seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1",
+    "0" => seq"L2:R2"
 )
