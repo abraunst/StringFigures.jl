@@ -102,7 +102,7 @@ struct StringProcedure
     calculus::StringCalculus
 end
 
-@rule parenseq = "(" & litlinseq & ")" > (_,s,_)->s 
+@rule parenseq = "(" & linseq & ")" > (_,s,_)->s 
 
 @rule procedure = ((parenseq,opening) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
 

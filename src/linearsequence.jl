@@ -8,11 +8,14 @@ end
 
 @rule snodec = snode & ":" > (x,_) -> x
 @rule opening = "O" & r"[0-9A-Z]*"p > (_, o) -> Openings[o] 
-@rule litlinseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
-@rule linseq = (litlinseq,opening)
+@rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
 
 macro seq_str(s)
     parsepeg(linseq, s)
+end
+
+macro open_str(s)
+    parsepeg(opening, s)
 end
 
 macro storer_str(s)
