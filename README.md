@@ -65,13 +65,13 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule opening = "O" & r"[0-9A-Z]*"p
   ```
 
-* A functor is the part executing an action, typically a finger. It may be lateral or bilateral, meaning that both symmetric parts will be executing the same action.
+* A functor is the finger executing an action. A functor may be lateral or bilateral, the latter meaning that symmetric fingers in both hands will be executing the same action.
 
   ```julia
   @rule ffun = r"[LR]?" & int
   ```
 
-* A `FrameRef` is a reference to one string section attached to a `FrameNode` `f`. `l`,`m`,`u` denote respectively the lowest, middle or top string on `f`. If there are more than 3 strings on `f`, then the second, third, etc are refered to as `m1`, `m2`, ...
+* A `FrameRef` is a reference to one string attached to a `FrameNode`. `l`,`m`,`u` denote respectively the lowest, middle or top string on it. If there are more than 3 strings, then the second, third, etc are refered to as `m1`, `m2`, ...
 
   ```julia
   @rule fref = r"l|u|m[1-9]?|" & r"[RL]?" & r"[0-9]"
@@ -127,21 +127,20 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   * Calculus (Storer, p362)
 * [x] Extend, i.e. the $\mid$ operation (Storer, p003)
   * Lemma 2 A. and B. (Storer, p011) on extension cancellation
+* [X] Extension cancellation, $\phi_3$ rule and heuristics to decide when to apply it
 * [x] Pick string on the same hand (Storer, p015) or opposite hand (Storer, p020) from below. Example: $\overset{\longleftarrow}{L3}\left(\underline{L1n}\right)$
   * i.e. pass $L3$ (toward the executer) **over** all intermediate strings and pick up $L1n$ from below
   * This is encoded in plain text as `L3o(L1n)`
 * [X] Twist and multi-twist moves
 * [X] Pick from above (pick + twist)
 * [X] Three-dimensional picks, in which the finger moves also vertically to pass over some strings and below others (notation: e.g. `L1o(L2n):L1u(L2f):L1u(L3n)`)
-* [ ] Pick with non-standard arguments
 * [X] Navaho release move
-* [X] Power Passage
-* [X] $\phi_3$ passages and heuristics to decide when to apply it
+* [X] Power Passage (i.e. [::Calculus]^k)
 * [x] Multiple loops in a single Ln or Rn
 * [x] u,l,m,mx notation
-* [ ] Non-finger functors
 * [x] Pick from non-empty framenode
 * [x] Syntactic sugar for passages
 * [x] Elementary `StringCalculus`s
 * [x] LaTeX output of `StringCalculus`
 * [x] `StringProcedures`
+* [ ] Non-finger functors
