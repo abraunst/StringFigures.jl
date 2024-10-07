@@ -145,8 +145,8 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
         end
     end
     p = LinearSequence(q)
-    
     n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p; crossings)
+
     index(x) = Didx[x]
  
     locs_fixed = reduce(vcat, p' for p in pfixed)
@@ -168,6 +168,7 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
     append!(vlabels, fill("", nv(g)-n))
 
     locs_x, locs_y = tutte_embedding(g; vfixed, locs_fixed);
+
     if randomize
         locs_x[1:end] .+= randn.() * rfact
         locs_y[1:end] .+= randn.() * rfact
@@ -186,6 +187,8 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
         locs_x[n + i] += D[1] * (isframenode(p[i]) ? rfact/5 : rfact) 
         locs_y[n + i] += D[2] * (isframenode(p[i]) ? rfact/5 : rfact)
     end 
+
+    extr =  (-(extrema(locs_x)...)*(-7cm) + 3mm, -(extrema(locs_y)...)*(-7cm) + 3mm)
 
     pl0 = gplot(g, locs_x, locs_y;
         NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=1.0 * fact, edgestrokec=shadowc, kwd...)
@@ -220,6 +223,8 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
         nodelabeldist=9,
         nodelabelc,
         NODELABELSIZE=2.0)
+    
+    set_default_graphic_size(extr...)
 
     compose(pl4,pl3,pl2,pl1,pl0)
     #compose(pl2)
