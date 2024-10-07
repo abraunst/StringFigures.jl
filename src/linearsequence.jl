@@ -154,7 +154,9 @@ function isfarsidenext(p::LinearSequence, i::Int)
         end
     end
 
-    @assert mod(l-i, length(p)) != 0 && mod(r-i, length(p)) != 0  "only 3 or more frame nodes!"
+    if mod(l-r, length(p)) == 0   # < 3 frame nodes"
+        return type(p[i]) == :L
+    end
 
     crossings = lset ∩ rset
     #@show lset rset l r p[l] p[r] getindex.((p,), lset) getindex.((p,), rset) crossings
