@@ -83,10 +83,23 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     function pos(n)
         id,l = idx(n)
         θ = [-π/4; 0.0:π/12:π/4]
+        ε = 0.4
+        v = 1.0
+        L = 0
+        w = 0.7
+        R = 0.99
         if type(n) == :L
-            SVector(-0.5*cos(θ[id]+l*π/36), -sin(θ[id]+l*π/36))
-        else
-            SVector(0.5*cos(θ[id]+l*π/36) + 3, -sin(θ[id]+l*π/36))
+            SVector(-v*cos(θ[id]+l*π/36), -sin(w*(θ[id]+l*π/36)))
+        elseif type(n) == :La
+            R*SVector(-v*cos(θ[id]+(l-ε)*π/36), -sin(w*(θ[id]+(l-ε)*π/36)))
+        elseif type(n) == :Lb
+            R*SVector(-v*cos(θ[id]+(l+ε)*π/36), -sin(w*(θ[id]+(l+ε)*π/36)))
+        elseif type(n) == :R
+            SVector(v*cos(θ[id]+l*π/36), -sin(w*(θ[id]+l*π/36))) + SVector(L,0)
+        elseif type(n) == :Ra
+            R*SVector(v*cos(θ[id]+(l-ε)*π/36), -sin(w*(θ[id]+(l-ε)*π/36))) + SVector(L,0)
+        elseif type(n) == :Rb
+            R*SVector(v*cos(θ[id]+(l+ε)*π/36), -sin(w*(θ[id]+(l+ε)*π/36))) + SVector(L,0)
         end
     end
 
@@ -106,6 +119,7 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     end
 
     function label(n)
+        type(n) ∈ (:L,:R) || return ""
         pre = if n.loop == 0 && maxloop[n.nodetype => n.index] > 0
             "ℓ"
         elseif n.loop == 0
@@ -178,6 +192,23 @@ Example2: plot(proc"OA::DL1|"; shadowc="white", stringc="black", nodelabelc="bla
 function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, crossings=false,
             labels=true, shadowc = HSLA(colorant"black", 1.0), stringc=colorant"white", fact=1.0, 
             nodelabelc=colorant"white", kwd...)
+    
+    q = SeqNode[];
+    for (i,n) in pairs(p)
+        if isframenode(n)
+            ab = FrameNode(Symbol(string(n.nodetype)*"a"), n.index, n.loop), 
+                FrameNode(Symbol(string(n.nodetype)*"b"), n.index, n.loop)
+            if !isnearsidenext(p,i)
+                append!(q, (ab[1],  n))
+            else
+                append!(q, (n,  ab[1]))
+            end
+        else
+            push!(q, n)
+        end
+    end
+    p = LinearSequence(q)
+    
     n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p; crossings)
     index(x) = Didx[x]
  
@@ -205,6 +236,7 @@ function plot(p::LinearSequence; rfact=0.02, k=0.0, randomize=false, crossings=f
     end
     
     for i in eachindex(p)
+        #(isframenode(p[i+1]) || isframenode(p[i-1])) && continue
         P1 = SVector(locs_x[index(p[i+1])], locs_y[index(p[i+1])])
         P2 = SVector(locs_x[index(p[i+2])], locs_y[index(p[i+2])])
         P3 = SVector(locs_x[index(p[i  ])], locs_y[index(p[i  ])])
