@@ -15,7 +15,6 @@ function tutte_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
     v[:,1], v[:,2]
 end
 
-
 function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     D = Dict{SeqNode, Int}()
     function pos(n)
@@ -25,7 +24,7 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
         v = 1.0
         L = 0
         w = 0.7
-        R = 0.99
+        R = 0.98
         if type(n) == :L
             SVector(-v*cos(θ[id]+l*π/36), -sin(w*(θ[id]+l*π/36)))
         elseif type(n) == :La
@@ -136,9 +135,9 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
             ab = FrameNode(Symbol(string(n.nodetype)*"a"), n.index, n.loop), 
                 FrameNode(Symbol(string(n.nodetype)*"b"), n.index, n.loop)
             if !isnearsidenext(p,i)
-                append!(q, (ab[1],  n))
+                append!(q, (ab[1], n, ab[2]))
             else
-                append!(q, (n,  ab[1]))
+                append!(q, (ab[2], n,  ab[1]))
             end
         else
             push!(q, n)
@@ -208,10 +207,10 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
         )
     
     oldl = length(locs_x)
-    for i=1:2:lastindex(vfixed)
-        push!(locs_x, (locs_x[vfixed[i]]+locs_x[vfixed[i+1]])/2)
-        push!(locs_y, (locs_y[vfixed[i]]+locs_y[vfixed[i+1]])/2)
-        push!(vlabels, vlabels[vfixed[i]]*vlabels[vfixed[i+1]])
+    for i=1:3:lastindex(vfixed)
+        push!(locs_x, (locs_x[vfixed[i]]+locs_x[vfixed[i+1]]+locs_x[vfixed[i+2]])/3)
+        push!(locs_y, (locs_y[vfixed[i]]+locs_y[vfixed[i+1]]+locs_y[vfixed[i+2]])/3)
+        push!(vlabels, vlabels[vfixed[i+1]])
         add_vertex!(g)
     end
 
