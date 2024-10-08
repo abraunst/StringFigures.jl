@@ -145,7 +145,6 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
     end
     p = LinearSequence(q)
     n, vlabels, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p; crossings)
-
     index(x) = Didx[x]
  
     locs_fixed = reduce(vcat, p' for p in pfixed)
@@ -197,12 +196,13 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
         
     pl2 = gplot(gover, locs_x, locs_y;
         NODELABELSIZE=0.0, NODESIZE=0.0, nodefillc=shadowc, EDGELINEWIDTH=1.0*fact, edgestrokec=shadowc)
-
     pl3 = gplot(gover, locs_x, locs_y;
         EDGELINEWIDTH=0.2*fact, edgestrokec=stringc,
-        NODESIZE=[i ∈ vfixed ? 0.00 : (crossings ? 0.002 : 0.0) for i in 1:nv(g)],
+        NODESIZE=[i ∈ vfixed ? 0.0 : (crossings ? 0.002 : 0.0) for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : stringc for i in 1:nv(g)],
-        NODELABELSIZE=0.0, nodelabel=nothing, nodelabeldist=9, 
+        nodelabel=vlabels, 
+        NODELABELSIZE=[i ∈ vfixed ? 0.0 : 2.0 for i=1:nv(g)], 
+        nodelabeldist=30, 
         nodelabelc
         )
     
