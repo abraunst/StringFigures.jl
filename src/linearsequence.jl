@@ -1,7 +1,11 @@
-using PEG
-
 ######## Linear Sequence
 
+"""
+A `LinearSequence` represents a knot in punctured space with a notation similar to Gauss codes. 
+A linear sequence is a sequence (separated by ":") of either `FrameNode`s (loosely, fingers) and `Crossing`s. 
+
+See also: [`seq""`](@ref), [`plot`](@ref)
+"""
 struct LinearSequence
     seq::Vector{SeqNode}
 end
@@ -159,9 +163,9 @@ end
 numcrossings(p::LinearSequence) = maximum(idx(n) for n in p if n isa CrossNode; init = 0)
 
 
-"""
-Determine if n1 is closer to the executer than n2 (wrt. n)
-"""
+#"""
+#Determine if n1 is closer to the executer than n2 (wrt. n)
+#"""
 function isnearer(n1::FrameNode, n2::FrameNode, n::FrameNode)
     if type(n1) != type(n) && type(n2) != type(n)
         idx(n1) < idx(n2)

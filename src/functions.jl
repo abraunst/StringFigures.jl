@@ -5,7 +5,7 @@ function delete(g::Function, p::LinearSequence)
 end
 
 function navaho(p::LinearSequence, f::FrameNode)
-    N = maximum(idx(n) for n in p if n isa CrossNode)
+    N = maximum(idx(n) for n in p if n isa CrossNode; init=0)
     s = SeqNode[]
     for n in p
         if isframenode(f) && n == FrameNode(functor(f)..., loop(f) + 1)
@@ -25,7 +25,7 @@ function navaho(p::LinearSequence, f::FrameNode)
     return LinearSequence(s) |> canonical
 end
 
-"ϕ₁ and ϕ₂ simplifications (lemmas 2a and 2b)"
+# "ϕ₁ and ϕ₂ simplifications (lemmas 2a and 2b)"
 function simplify12(p::LinearSequence)
     while true
         p = canonical(p)
@@ -84,10 +84,10 @@ function pick_sameside(p::LinearSequence, f::FrameNode, args::Vector{Tuple{Frame
     pick_path(p, f, i, argnext, path)
 end
 
-"""
-Builds path from `f` to `args[end]` close to the fingers, with under/over switching at 
-intermediate steps.
-"""
+#"""
+#Builds path from `f` to `args[end]` close to the fingers, with under/over switching at 
+#intermediate steps.
+#"""
 function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}})
     a, (arg, near, over) = (length(args) - 1, args[end])
     function update(n, b)
@@ -129,12 +129,12 @@ function build_path(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNod
     return path
 end
 
-"""
-Makes a complex pick by functor `f`` of segment `(i,bi)` through
-all segments in `path`, each one identified by `(j,bj,o)` where `o` determines 
-if the pick passes over the corresponding segment. Here segment `(j,bj)` is the 
-segment going from `p[j]` to `p[j+bj]`.
-"""
+#"""
+#Makes a complex pick by functor `f`` of segment `(i,bi)` through
+#all segments in `path`, each one identified by `(j,bj,o)` where `o` determines 
+#if the pick passes over the corresponding segment. Here segment `(j,bj)` is the 
+#segment going from `p[j]` to `p[j+bj]`.
+#"""
 function pick_path(p, f, i, bi, path)
     before, after = [SeqNode[] for _ in p], [SeqNode[] for _ in p]
     nx = numcrossings(p)
@@ -234,7 +234,7 @@ function lemma2c(p::LinearSequence, i1::Int, i2::Int, i3::Int)
     end
 end
 
-"ϕ₃ simplifications (lemma 2c), based on string total length/tension"
+#"ϕ₃ simplifications (lemma 2c), based on string total length/tension"
 function simplify3(q::LinearSequence; k=0.5, mult=10^4)
     ten = tension(q; k) + mult*length(q)
     p = simplify12(q)
