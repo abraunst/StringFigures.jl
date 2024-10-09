@@ -117,7 +117,7 @@ end
 function initialstring(seq::LinearSequence)
     for (name, s) in pairs(Openings)
         if seq == s
-            return "O"*name
+            return name
         end
     end
     return "($(seq))"

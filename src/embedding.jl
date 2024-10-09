@@ -203,7 +203,7 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
         EDGELINEWIDTH=0.2*fact, edgestrokec=stringc,
         NODESIZE=[i ∈ vfixed ? 0.0 : (crossings ? 0.002 : 0.0) for i in 1:nv(g)],
         nodefillc=[i ∈ vfixed ? colorant"red" : stringc for i in 1:nv(g)],
-        nodelabel=vlabels, 
+        nodelabel=[i ∈ vfixed ? "" : vlabels[i] for i=1:nv(g)], 
         NODELABELSIZE=[i ∈ vfixed ? 0.0 : 2.0 for i=1:nv(g)], 
         nodelabeldist=30, 
         nodelabelc
@@ -228,6 +228,7 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
     
     set_default_graphic_size(extr...)
 
+    #compose(pl4,pl3,pl2,pl1,pl0)
     compose(pl4,pl3,pl2,pl1,pl0)
     #compose(pl2)
 end
