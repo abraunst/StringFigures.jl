@@ -5,6 +5,7 @@ This code attempts to implement the string figure calculus in Storer's monograph
 Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 
 [![Build Status](https://github.com/abraunst/StringFigures.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/abraunst/StringFigures.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Documentation](https://img.shields.io/badge/docs-blue.svg)](https://abraunst.github.io/StringFigures.jl)
 
 ![brochos](notebooks/brochos.svg)
 
@@ -14,29 +15,23 @@ Brochos (sling): Storer, Fig. 17, pag. 30
 
 ## Quick Start
 
-First, install Julia (e.g. from [juliaup](https://github.com/JuliaLang/juliaup)) and clone this repository.
+First, install Julia (e.g. from [juliaup](https://github.com/JuliaLang/juliaup))
 
-Inside the repo, open the Julia REPL with `julia`, then press `]` to enter pkg mode.
+Open the Julia REPL with `julia`.
 
-In pkg mode, set the primary environment to this project:
+Add the `StringFigures` package:
 
-```text
-activate .
-```
-
-Then, precompile the project (after installing dependencies):
-
-```text
-precompile
+```julia
+julia> import Pkg; Pkg.add("https://github.com/abraunst/StringFigures.jl")
 ```
 
 To run tests in [test/runtests.jl](./test/runtests.jl):
 
-```text
-test StringFigures
+```julia
+julia> Pkg.test("StringFigures")
 ```
 
-Create and plot a simple figure. Paste the following into a jupyter notebook cell and execute it.
+To create and plot a simple figure in a jupyter notebook, the following into a cell and execute it:
 
 ```julia
 using StringFigures
