@@ -6,6 +6,9 @@ struct LinearSequence
     seq::Vector{SeqNode}
 end
 
+@rule snodec = snode & ":" > (x,_) -> x
+@rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
+
 """
 `seq"xxx"` returns the [`LinearSequence`](@ref) `"xxx"`.
     
@@ -27,9 +30,7 @@ const Openings = Dict(
     "O0" => seq"L2:R2"
 )
 
-@rule snodec = snode & ":" > (x,_) -> x
 @rule opening = r"[0-9A-Za-z]*"p[1] > o -> haskey(Openings, o) ? Openings[o] : throw(ArgumentError("Opening \"$o\" not found")) 
-@rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
 
 
 """
