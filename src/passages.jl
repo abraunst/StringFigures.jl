@@ -1,8 +1,9 @@
-using PEG
-
-
 """
-The `Passage` type represents one passage or move in a string figure construction
+The `Passage` type represents one passage or move in a string figure construction. A specific `Passage` can
+be applied to a [`LinearSequence`](@ref) as a function.
+
+See also: [`ReleasePassage`](@ref), [`TwistPassage`](@ref), [`PickPassage`](@ref), [`ExtendPassage`](@ref),
+[`MultiPickPassage`](@ref), [`NavahoPassage`](@ref), [`PowerPassage`](@ref), [`pass""`](@ref)
 """
 abstract type Passage end
 
@@ -71,6 +72,9 @@ end
 
 @rule passage = extend_p, twist_p, release_p, navaho_p, multi_pick_p, pick_p, power_p
 
+"""
+`pass"xxx"` creates a [`Passage`](@ref) from string "xxx"
+"""
 macro pass_str(s)
     parsepeg(passage, s)
 end
@@ -165,7 +169,13 @@ end
 """
 A `MultiPickPassage` represents the action of picking a string with a given functor. 
 Its arguments are:
-- `pass::Vector{PickPassage}` : the argument (i.e. the finger holding the section of string being picked)
+- `pass::Vector{[`PickPassage`](@ref)}` : A sequence indicating a 3D move in which the functor can pass either 
+over or under specific string segments attached to `FrameNode`.
+
+```jldoctest
+julia> pass"L1o(L2n):L1u(L2f)"
+pass"L1o(L2n):L1u(L2f)"
+```
 """
 struct MultiPickPassage{T<:PickPassage} <: Passage
     seq::Vector{T}
@@ -210,6 +220,11 @@ end
 """
 A `ReleasePassage` represents the release of one loop. It is denoted by the "□" symbol in 
 Storer, which we represent in ASCII with "D" (for delete) 
+
+```jldoctest
+julia> pass"DL1"(open"OA")
+seq"L2:x1(U):R5:L5:x1(0):R2:x2(0):R1:x2(U)"
+```
 """
 struct ReleasePassage{F<:AbstractFrameRef} <: Passage
     arg::F
@@ -245,7 +260,14 @@ end
 
 """
 A `NavahoPassage` represents the release of the lower loop in a two-loop finger. 
-It is denoted by the "N" symbol in Storer. 
+It is denoted by the "N" symbol in Storer.
+
+```jldoctest
+julia> seq"L1.1:L2:R1:L1.0" |> pass"NL1"
+seq"L1:x1(U):x2(0):L2:R1:x3(0):x1(0):x2(U):x4(U):x4(0):x3(U)"
+```
+
+See also [`pass""`](@ref)
 """
 struct NavahoPassage{F <: AbstractFrameNode} <: Passage
     arg::F
@@ -265,7 +287,13 @@ end
 
 
 """
-A `TwistPassage` represents the inversion of one loop
+A `TwistPassage` represents the twisting of one loop a certain number of times
+```jldoctest
+julia> pass"<<<1"
+pass"<<<1"
+```
+
+See also [`pass""`](@ref)
 """
 struct TwistPassage{T <: AbstractFrameRef} <: Passage
     arg::T
@@ -314,6 +342,12 @@ Base.show(io::IO, f::PowerPassage) = print(io, "[", f.f, "]^", f.n)
 
 """
 A `PowerPassage` is just the repetition of another passage or sequence of passages
+
+```jldoctest
+julia> pass"[<1#>1]^5"
+pass"[<1#>1#]^5"
+```
+See also [`pass""`](@ref)
 """
 function (f::PowerPassage)(p::LinearSequence)
     for _ in 1:f.n

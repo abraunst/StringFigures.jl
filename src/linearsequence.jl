@@ -1,29 +1,80 @@
-using PEG
-
 ######## Linear Sequence
 
+"""
+A `LinearSequence` represents a knot in punctured space with a notation similar to Gauss codes. 
+A linear sequence is a sequence (separated by ":") of either `FrameNode`s (loosely, fingers) and `Crossing`s. 
+
+See also: [`seq""`](@ref), [`plot`](@ref)
+"""
 struct LinearSequence
     seq::Vector{SeqNode}
 end
 
 @rule snodec = snode & ":" > (x,_) -> x
-@rule opening = "O" & r"[0-9A-Z]*"p > (_, o) -> Openings[o] 
 @rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
 
+"""
+`seq"xxx"` returns the [`LinearSequence`](@ref) `"xxx"`.
+    
+See also: [`open""`](@ref), [`storer""`](@ref)
+
+# Examples
+```jldoctest
+julia> seq"L1:R1:R2"
+seq"L1:R1:R2"
+```
+"""
 macro seq_str(s)
     parsepeg(linseq, s)
 end
 
+const Openings = Dict(
+    "O1" => seq"L1:L5:R5:R1",
+    "OA" => seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1",
+    "O0" => seq"L2:R2"
+)
+
+@rule opening = r"[0-9A-Za-z]*"p[1] > o -> haskey(Openings, o) ? Openings[o] : throw(ArgumentError("Opening \"$o\" not found")) 
+
+
+"""
+`open"xxx"` returns the opening xxx. 
+
+# Examples
+```jldoctest
+julia> open"O0"
+seq"L2:R2"
+
+julia> open"O1"
+seq"L1:L5:R5:R1"
+
+julia> open"OA"
+seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1"
+```
+"""
 macro open_str(s)
     parsepeg(opening, s)
 end
 
+"""
+`storer"xxx"` is equivalent to `seq"xxx"` but allows some fuzziness to be able to easily copy-paste 
+from Storer's OCR'd book :)
+
+# Examples
+```jldoctest
+julia> osage3diamondsfig41 = storer"Ll: x1(0): x2(U): x3(0): x4(0): x5(U): x6(0): x7(0): x8(UJ: x9(U):
+       x10(0): x11(0): x12(U): x13(UJ: x14(0): x15(U): x16(U): R2: x16(0):
+       x17(U): x18{0): x19(U): x20(0): x5(0): x4(U): x21(0): L2: x2l(U):
+       x3(U): x2(0): xl(U): x22(U): x23(0): x6(U): x20(U): x19(0): x9(0):
+       xlO (U): x18 (U): xl7(0): x15 (0): x14 (U): x13 (0): Rl: x12'(0): xll (U):
+       x8(0): x7(UJ: x23(U): x22(0) "
+seq"L1:x1(0):x2(U):x3(0):x4(0):x5(U):x6(0):x7(0):x8(U):x9(U):x10(0):x11(0):x12(U):x13(U):x14(0):x15(U):x16(U):R2:x16(0):x17(U):x18(0):x19(U):x20(0):x5(0):x4(U):x21(0):L2:x21(U):x3(U):x2(0):x1(U):x22(U):x23(0):x6(U):x20(U):x19(0):x9(0):x10(U):x18(U):x17(0):x15(0):x14(U):x13(0):R1:x12(0):x11(U):x8(0):x7(U):x23(U):x22(0)"
+```
+"""
 macro storer_str(s)
-    # allow some fuzziness to be able to easily copy-paste 
-    # from Storer's OCR'd book :)
     parsepeg(linseq, replace(s, "\n"=>"", " " => "", "{" => "(",
         "l" => "1", ";" => ":", "O" => "0", "S" => "5", "X" => "x",
-        "B" => "8", "G" => "6", "?" => "7"))
+        "B" => "8", "G" => "6", "?" => "7", "J" => ")", "'" => ""))
 end
 
 Base.length(p::LinearSequence) = length(p.seq)
@@ -112,9 +163,9 @@ end
 numcrossings(p::LinearSequence) = maximum(idx(n) for n in p if n isa CrossNode; init = 0)
 
 
-"""
-Determine if n1 is closer to the executer than n2 (wrt. n)
-"""
+#"""
+#Determine if n1 is closer to the executer than n2 (wrt. n)
+#"""
 function isnearer(n1::FrameNode, n2::FrameNode, n::FrameNode)
     if type(n1) != type(n) && type(n2) != type(n)
         idx(n1) < idx(n2)
@@ -154,7 +205,9 @@ function isfarsidenext(p::LinearSequence, i::Int)
         end
     end
 
-    @assert mod(l-i, length(p)) != 0 && mod(r-i, length(p)) != 0  "only 3 or more frame nodes!"
+    if mod(l-r, length(p)) == 0   # < 3 frame nodes"
+        return type(p[i]) == :L
+    end
 
     crossings = lset ∩ rset
     #@show lset rset l r p[l] p[r] getindex.((p,), lset) getindex.((p,), rset) crossings
@@ -198,9 +251,3 @@ function Base.show(io::IO, p::LinearSequence)
     end
     show(io, p[end])
 end
-
-const Openings = Dict(
-    "1" => seq"L1:L5:R5:R1",
-    "A" => seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1",
-    "0" => seq"L2:R2"
-)

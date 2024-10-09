@@ -1,10 +1,16 @@
 # StringFigures
 
-This code attempts to implement the string figure calculus in Storer's article:
+This code attempts to implement the string figure calculus in Storer's monograph:
 
 Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 
 [![Build Status](https://github.com/abraunst/StringFigures.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/abraunst/StringFigures.jl/actions/workflows/CI.yml?query=branch%3Amain)
+
+![brochos](notebooks/brochos.svg)
+
+${{OA}}~::~{{{\overset{\longrightarrow}{1}\left(\underline{2f}\right)}}}\# {{{\overset{\longleftarrow}{2}\left(u1n\right):\underset{\longleftarrow}{2}\left(\underline{ℓ1f}\right)}}}\# {{{\square 1}}}{{{|}}} {{{\overset{\longrightarrow}{1}\left(ℓ2f\right):\underset{\longrightarrow}{1}\left(\underline{5f}\right)}}}\# {{{\square 5}}}{{{|}}} {{{\overset{\longleftarrow}{5}\left(\underline{u2n}\right)}}}\# {{{\square u2}}}{{{|}}}$
+
+Brochos (sling): Storer, Fig. 17, pag. 30
 
 ## Quick Start
 
@@ -30,7 +36,7 @@ To run tests in [test/runtests.jl](./test/runtests.jl):
 test StringFigures
 ```
 
-Create and plot a simple figure. Type the following into a jupyter notebook cell and execute it.
+Create and plot a simple figure. Paste the following into a jupyter notebook cell and execute it.
 
 ```julia
 using StringFigures
@@ -62,7 +68,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
 * Some standard openings have been already defined, and can be retrieved with `open"O0", open"O1", open"OA"`.
 
   ```julia
-  @rule opening = "O" & r"[0-9A-Z]*"p
+  @rule opening = r"[0-9A-Za-z]*"p
   ```
 
 * A functor is the finger executing an action. A functor may be lateral or bilateral, the latter meaning that symmetric fingers in both hands will be executing the same action.

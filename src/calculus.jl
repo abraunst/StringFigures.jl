@@ -9,6 +9,8 @@ Passages, possibly separated by `#`. A `StringCalculus` can be:
 * Used as functions on a `LinearSequence`, producing a new `LinearSequence`
 * Multiplied to other `StringCalculus`s or `Passage`s (concatenating the instructions)
 * Elevated to some power (repeating the same statements)
+
+See also: [`StringProcedure`](@ref)
 """
 struct StringCalculus 
     seq::Vector{Passage}
@@ -96,6 +98,8 @@ A `StringProcedure``consists in an initial `LinearSequence` plus a
 the figure construction. It can be
 * indexed and iterated to access each intermediate step
 * `plot`ed to show all steps
+
+See also [`proc""`](@ref)
 """
 struct StringProcedure
     initial::LinearSequence
@@ -106,6 +110,16 @@ end
 
 @rule procedure = ((parenseq,opening) & r"::"p & calculus) > (s,_,c) -> StringProcedure(s,c)
 
+"""
+`proc"xxx"` creates a [`StringProcedure`](@ref) from string "xxx"
+```jldoctest
+julia> proc"OA::D1"
+proc"OA::D1#"
+
+julia> proc"OA::D1" |> last
+seq"L2:x1(U):R5:L5:x1(0):R2:x2(0):x2(U)"
+```
+"""
 macro proc_str(s)
     parsepeg(procedure, s)
 end
@@ -117,7 +131,7 @@ end
 function initialstring(seq::LinearSequence)
     for (name, s) in pairs(Openings)
         if seq == s
-            return "O"*name
+            return name
         end
     end
     return "($(seq))"
