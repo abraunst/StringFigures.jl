@@ -170,7 +170,7 @@ end
 A `MultiPickPassage` represents the action of picking a string with a given functor. 
 Its arguments are:
 - `pass::Vector{[`PickPassage`](@ref)}` : A sequence indicating a 3D move in which the functor can pass either 
-over or under specific string segments attached to [`FrameNode`](@ref).
+over or under specific string segments attached to `FrameNode`.
 
 ```jldoctest
 julia> pass"L1o(L2n):L1u(L2f)"
