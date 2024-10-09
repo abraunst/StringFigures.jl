@@ -6,16 +6,6 @@ struct LinearSequence
     seq::Vector{SeqNode}
 end
 
-const Openings = Dict(
-    "O1" => seq"L1:L5:R5:R1",
-    "OA" => seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1",
-    "O0" => seq"L2:R2"
-)
-
-@rule snodec = snode & ":" > (x,_) -> x
-@rule opening = r"[0-9A-Za-z]*"p[1] > o -> haskey(Openings, o) ? Openings[o] : throw(ArgumentError("Opening \"$o\" not found")) 
-@rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
-
 """
 `seq"xxx"` returns the [`LinearSequence`](@ref) `"xxx"`.
     
@@ -30,6 +20,16 @@ seq"L1:R1:R2"
 macro seq_str(s)
     parsepeg(linseq, s)
 end
+
+const Openings = Dict(
+    "O1" => seq"L1:L5:R5:R1",
+    "OA" => seq"L1:x1(0):R2:x2(0):L5:R5:x2(U):L2:x1(U):R1",
+    "O0" => seq"L2:R2"
+)
+
+@rule snodec = snode & ":" > (x,_) -> x
+@rule opening = r"[0-9A-Za-z]*"p[1] > o -> haskey(Openings, o) ? Openings[o] : throw(ArgumentError("Opening \"$o\" not found")) 
+@rule linseq = (snodec[*] & snode) > (x,y) -> LinearSequence(push!(copy(x),y))
 
 
 """
