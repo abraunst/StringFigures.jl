@@ -8,7 +8,7 @@ Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 
 ![brochos](notebooks/brochos.svg)
 
-$`{{OA}}~::~{{{\overset{\longrightarrow}{1}\left(\underline{2f}\right)}}}\# {{{\overset{\longleftarrow}{2}\left(u1n\right):\underset{\longleftarrow}{2}\left(\underline{ℓ1f}\right)}}}\# {{{\square 1}}}{{{|}}} {{{\overset{\longrightarrow}{1}\left(ℓ2f\right):\underset{\longrightarrow}{1}\left(\underline{5f}\right)}}}\# {{{\square 5}}}{{{|}}} {{{\overset{\longleftarrow}{5}\left(\underline{u2n}\right)}}}\# {{{\square u2}}}{{{|}}}`$
+$`{{OA}}~::~{{{\overset{\longrightarrow}{1}\left(\underline{2f}\right)}}}\# {{{\overset{\longleftarrow}{2}\left(u1n\right):\underset{\longleftarrow}{2}\left(\underline{ℓ1f}\right)}}}\# {{{□ 1}}}{{{|}}} {{{\overset{\longrightarrow}{1}\left(ℓ2f\right):\underset{\longrightarrow}{1}\left(\underline{5f}\right)}}}\# {{{□ 5}}}{{{|}}} {{{\overset{\longleftarrow}{5}\left(\underline{u2n}\right)}}}\# {{{□ u2}}}{{{|}}}`$
 
 Brochos (sling): Storer, Fig. 17, pag. 30
 
@@ -129,7 +129,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
 
 ### Calculus
 
-* [x] Release, i.e. the $\square$ operation (Storer, p023)
+* [x] Release, i.e. the $□$ operation (Storer, p023)
   * Calculus (Storer, p362)
 * [x] Extend, i.e. the $\mid$ operation (Storer, p003)
   * Lemma 2 A. and B. (Storer, p011) on extension cancellation
