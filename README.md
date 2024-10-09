@@ -8,7 +8,7 @@ Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 
 ![brochos](notebooks/brochos.svg)
 
-${{OA}}~::~{{{\overset{\longrightarrow}{1}\left(\underline{2f}\right)}}}\# {{{\overset{\longleftarrow}{2}\left(u1n\right):\underset{\longleftarrow}{2}\left(\underline{ℓ1f}\right)}}}\# {{{\square 1}}}{{{|}}} {{{\overset{\longrightarrow}{1}\left(ℓ2f\right):\underset{\longrightarrow}{1}\left(\underline{5f}\right)}}}\# {{{\square 5}}}{{{|}}} {{{\overset{\longleftarrow}{5}\left(\underline{u2n}\right)}}}\# {{{\square u2}}}{{{|}}}$
+$`{{OA}}~::~{{{\overset{\longrightarrow}{1}\left(\underline{2f}\right)}}}\# {{{\overset{\longleftarrow}{2}\left(u1n\right):\underset{\longleftarrow}{2}\left(\underline{ℓ1f}\right)}}}\# {{{\square 1}}}{{{|}}} {{{\overset{\longrightarrow}{1}\left(ℓ2f\right):\underset{\longrightarrow}{1}\left(\underline{5f}\right)}}}\# {{{\square 5}}}{{{|}}} {{{\overset{\longleftarrow}{5}\left(\underline{u2n}\right)}}}\# {{{\square u2}}}{{{|}}}`$
 
 Brochos (sling): Storer, Fig. 17, pag. 30
 
