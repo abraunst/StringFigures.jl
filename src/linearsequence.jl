@@ -1,10 +1,11 @@
 ######## Linear Sequence
 
 """
-A `LinearSequence` represents a knot in punctured space with a notation similar to Gauss codes. 
-A linear sequence is a sequence (separated by ":") of either `FrameNode`s (loosely, fingers) and `Crossing`s. 
+A [`LinearSequence`](@ref) represents a knot in punctured space with a notation similar to Gauss codes. 
+A linear sequence is a sequence (separated by ":") of either [`FrameNode`](@ref)s (loosely, fingers) and
+[`CrossNode`](@ref)s. Each [`CrossNode`](@ref) appears twice in the sequence. The sequence is  
 
-See also: [`seq""`](@ref), [`plot`](@ref)
+See also: [`seq""`](@ref), [`plot`](@ref), [`FrameNode`](@ref), [`CrossNode`](@ref)
 """
 struct LinearSequence
     seq::Vector{SeqNode}

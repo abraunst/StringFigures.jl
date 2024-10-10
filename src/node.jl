@@ -4,6 +4,9 @@ using PEG
 
 abstract type SeqNode end
 
+"""
+A `CrossNode` represents a crossing in a knot diagram, and is parametrized by `index::Int` and `nodetype ∈ (:U,:O)` 
+"""
 struct CrossNode <: SeqNode
     nodetype::Symbol
     index::Int
@@ -16,13 +19,20 @@ end
 
 abstract type AbstractFrameNode <: SeqNode end
 
+"""
+A `FrameNode` represents both:
+  * A loop on a finger or other body part that is holding the string
+  * A "puncture" of the plane that the knot cannot freely cross
+
+It is parametrized by `nodetype ∈ (:L, :R)`, `index::Int`, `loop::Int`
+"""
 struct FrameNode <: AbstractFrameNode
     nodetype::Symbol
     index::Int
     loop::Int
     function FrameNode(type, idx::Int, loop = 0)
         idx ≥ 0 || throw(ArgumentError("Wrong index $idx"))
-        #type ∈ (:L, :R) || throw(ArgumentError("Wrong type $type"))
+        #type ∈ (:L, :R, :La, :Lb, :Ra, :Rb) || throw(ArgumentError("Wrong type $type"))
         new(type, idx, loop)
     end
 end
@@ -54,13 +64,23 @@ function parsepeg(peg, s)
     catch e
         if e isa Meta.ParseError
             println(e.msg)
-            
         else
             rethrow(e)
         end
     end
 end
 
+"""
+node"xxx" generates either a [`FrameNode`](@ref) or a [`CrossNode`](@ref).
+
+```jldoctest
+julia> node"L1"
+node"L1"
+
+julia> node"x100(0)"
+node"x100(0)"
+```
+"""
 macro node_str(s)
     parsepeg(snode, s)
 end

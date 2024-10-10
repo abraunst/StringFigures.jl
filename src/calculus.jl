@@ -87,6 +87,14 @@ function Base.show(io::IO, m::MIME"text/latex", s::StringCalculus)
     inmath || print(io, " \$")
 end
 
+"""
+`calc"xxx"` produces a [`Calculus`](@ref) from "xxx"
+
+```jldoctest
+julia> calc"DL1#DR1"
+calc"DL1 # DR1"
+```
+"""
 macro calc_str(s)
     parsepeg(calculus, s)
 end
