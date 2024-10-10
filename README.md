@@ -5,7 +5,7 @@ This code attempts to implement the string figure calculus in Storer's monograph
 Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 
 [![Build Status](https://github.com/abraunst/StringFigures.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/abraunst/StringFigures.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Documentation](https://img.shields.io/badge/docs-blue.svg)](https://abraunst.github.io/StringFigures.jl)
+[![Documentation](https://img.shields.io/badge/docs-main-blue.svg)](https://abraunst.github.io/StringFigures.jl)
 
 ![brochos](notebooks/brochos.svg)
 
