@@ -2,7 +2,7 @@ module StringFigures
 
 using PEG
 
-export LinearSequence, SeqNode, FrameNode, CrossNode, FrameRef,
+export LinearSequence, SeqNode, FrameNode, CrossNode, FrameRef, BiFrameRef,
         @node_str, @seq_str, @open_str, @storer_str, @pass_str, @calc_str, @proc_str, @fref_str,
         plot, latex, isframenode, isfarsidenext, isnearsidenext,
         iscanonical, canonical, release, simplify, pick, twist,

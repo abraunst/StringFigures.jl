@@ -9,12 +9,20 @@ abstract type Passage end
 
 abstract type AbstractFrameRef end
 
+"""
+A `FrameRef` is a reference to one loop attached to a [`FrameNode`](@ref). `l`,`m`,`u` denote respectively the 
+lowest, middle or top string on it. If there are more than 3 strings, then the second, third, etc are refered 
+to as `m1`, `m2`, ...
+"""
 struct FrameRef <: AbstractFrameRef
     nodetype::Symbol
     index::Int
     loop::Symbol
 end
 
+"""
+A `BiFrameRef` is a bilateral reference to a loop attached to a [`FrameNode`](@ref).
+"""
 struct BiFrameRef <: AbstractFrameRef
     index::Int
     loop::Symbol
@@ -28,9 +36,9 @@ end
 frameref(nodetype, index, loop) = nodetype == Symbol("") ? BiFrameRef(index, loop) : FrameRef(nodetype, index, loop)
 framenode(nodetype, index, loop = 0) = nodetype == Symbol("") ? BiFrameNode(index, loop) : FrameNode(nodetype, index, loop)
 
-type(f::BiFrameRef) = Symbol("")
+type(::BiFrameRef) = Symbol("")
 type(f::FrameRef) = f.nodetype
-type(f::BiFrameNode) = Symbol("")
+type(::BiFrameNode) = Symbol("")
 
 left(f::BiFrameNode) = FrameNode(:L, f.index, f.loop)
 right(f::BiFrameNode) = FrameNode(:R, f.index, f.loop)
@@ -66,6 +74,9 @@ latex(io::IO, n::BiFrameNode) = (print(io, n.index); n.loop != 0 && print(io, n.
 
 @rule ffun = r"[LR]?" & int > (t,d) -> framenode(Symbol(t), d)
 
+"""
+`fref"xxx"` creates a [`FrameRef`](@ref) or [`BiFrameRef`](@ref)
+"""
 macro fref_str(s)
     parsepeg(fref, s)
 end
