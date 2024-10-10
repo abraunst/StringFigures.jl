@@ -2,8 +2,9 @@
 
 """
 A [`LinearSequence`](@ref) represents a knot in punctured space with a notation similar to Gauss codes. 
-A linear sequence is a sequence (separated by ":") of either [`FrameNode`](@ref)s (loosely, fingers) and
-[`CrossNode`](@ref)s. Each [`CrossNode`](@ref) appears twice in the sequence. The sequence is  
+A linear sequence is a sequence (separated by `:`) of either [`FrameNode`](@ref)s (loosely, fingers) and
+[`CrossNode`](@ref)s. [`CrossNode`](@ref)s appear in pairs in the sequence (one with the attribute `:O` 
+(for "over") and one with the attribute `:U` (for "under")  
 
 See also: [`seq""`](@ref), [`plot`](@ref), [`FrameNode`](@ref), [`CrossNode`](@ref)
 """
