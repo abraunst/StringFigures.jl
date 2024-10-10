@@ -44,7 +44,7 @@ StringProcedure
 
 ## Grammar
 
-Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by a PEG using the `PEG.jl` library. The full grammar is shown below.
+Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by a PEG using the [`PEG.jl`](https://github.com/wdebeaum/PEG.jl) library. The full grammar is shown below.
 
 * [`FrameNode`](@ref), [`CrossNode`](@ref)
 

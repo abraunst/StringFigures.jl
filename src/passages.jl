@@ -106,6 +106,11 @@ end
 """
 An `ExtendPassage` represents the extension of the string in order to make it taut. 
 It has no arguments. Represented in Storer with the symbol "|".
+
+```jldoctest
+julia> pass"|"(seq"L1:x1(0):x1(U):R1")
+seq"L1:L2"
+```
 """
 struct ExtendPassage <: Passage 
     k::Int
