@@ -84,6 +84,7 @@ Input of Nodes, Linear sequences, Calculus, and full Procedures is specified by 
   @rule release_p = "D" & fref
   @rule navaho_p = "N" & ffun
   @rule twist_p = r"(>+)|(<+)"p & fref
+  @rule power_p = "[" & calculus & "]^" & int > (_,f,_,n)->PowerPassage(f,n)
   ```
 
 * [`Calculus`](@ref)
