@@ -20,23 +20,23 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     function pos(n)
         id,l = idx(n)
         θ = [-π/4; 0.0:π/12:π/4]
+        Δθ = π/36
         ε = 0.32
-        v = 1.0
         L = 0
         w = 0.7
         R = 0.98
         if type(n) == :L
-            SVector(-v*cos(θ[id]+l*π/36), -sin(w*(θ[id]+l*π/36)))
+            SVector(-cos(θ[id]+l*Δθ), -sin(w*(θ[id]+l*Δθ)))
         elseif type(n) == :La
-            R*SVector(-v*cos(θ[id]+(l-ε)*π/36), -sin(w*(θ[id]+(l-ε)*π/36)))
+            SVector(-R*cos(θ[id]+(l-ε)*Δθ), -R*sin(w*(θ[id]+(l-ε)*Δθ)))
         elseif type(n) == :Lb
-            R*SVector(-v*cos(θ[id]+(l+ε)*π/36), -sin(w*(θ[id]+(l+ε)*π/36)))
+            SVector(-R*cos(θ[id]+(l+ε)*Δθ), -R*sin(w*(θ[id]+(l+ε)*Δθ)))
         elseif type(n) == :R
-            SVector(v*cos(θ[id]+l*π/36), -sin(w*(θ[id]+l*π/36))) + SVector(L,0)
+            SVector(cos(θ[id]+l*Δθ) + L, -sin(w*(θ[id]+l*Δθ)))
         elseif type(n) == :Ra
-            R*SVector(v*cos(θ[id]+(l-ε)*π/36), -sin(w*(θ[id]+(l-ε)*π/36))) + SVector(L,0)
+            SVector(R*cos(θ[id]+(l-ε)*Δθ) + L, -R*sin(w*(θ[id]+(l-ε)*Δθ)))
         elseif type(n) == :Rb
-            R*SVector(v*cos(θ[id]+(l+ε)*π/36), -sin(w*(θ[id]+(l+ε)*π/36))) + SVector(L,0)
+            SVector(R*cos(θ[id]+(l+ε)*Δθ) + L, -R*sin(w*(θ[id]+(l+ε)*Δθ)))
         end
     end
 
@@ -189,7 +189,7 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
         locs_y[n + i] += D[2] * (isframenode(p[i]) ? rfact/5 : rfact)
     end 
 
-    extr =  (-(extrema(locs_x)...)*(-7cm) + 3mm, -(extrema(locs_y)...)*(-9cm) + 3mm)
+    extr =  (-(extrema(locs_x)...)*(-8cm) + 3mm, -(extrema(locs_y)...)*(-11cm) + 3mm)
 
     pl0 = gplot(g, locs_x, locs_y;
         NODELABELSIZE=0.0, NODESIZE=0.0, EDGELINEWIDTH=1.1 * fact, edgestrokec=shadowc, kwd...)
