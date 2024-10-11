@@ -168,7 +168,7 @@ function pick_path(p, f, i, bi, path)
 end
 
 """
-'pick(p::LinearSequence, over::Bool, away::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)`
+`pick(p::LinearSequence, over::Bool, away::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)`
 
 Picks with finger `f`, `over` intermediate strings, `near` string in the loop `arg`, from `above`.  
 """
