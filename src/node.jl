@@ -21,8 +21,8 @@ abstract type AbstractFrameNode <: SeqNode end
 
 """
 A `FrameNode` represents both:
-  * A loop on a finger or other body part that is holding the string
-  * A "puncture" of the plane that the knot cannot freely cross
+  * A loop on a finger or other body part that is holding the string.
+  * A "puncture" of the plane that the string cannot freely cross.
 
 It is parametrized by `nodetype ∈ (:L, :R)`, `index::Int`, `loop::Int`
 """

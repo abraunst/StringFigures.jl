@@ -1,3 +1,8 @@
+"""
+`release(p::LinearSequence, f::FrameNode)`
+
+Releases `f` from the [`LinearSequence`](@ref) `p`
+"""
 release(p::LinearSequence, f::FrameNode) = delete(==(f), p)
 
 function delete(g::Function, p::LinearSequence)
@@ -162,7 +167,11 @@ function pick_path(p, f, i, bi, path)
     canonical(LinearSequence(vnew))
 end
 
+"""
+'pick(p::LinearSequence, over::Bool, away::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)`
 
+Picks with finger `f`, `over` intermediate strings, `near` string in the loop `arg`, from `above`.  
+"""
 function pick(p::LinearSequence, over::Bool, away::Bool, f::FrameNode, arg::FrameNode, near::Bool, above::Bool=false)
     pick(p, f, away, [(arg, near, over)], above)
 end
@@ -192,6 +201,11 @@ function pick(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool
     pick(p::LinearSequence, f::FrameNode, idx(f) < idx(args[end][1]), args, above)
 end
 
+"""
+`twist(p::LinearSequence, f::FrameNode, away::Bool)`
+
+Twists the top loop of `f` in [`LinearSequence`](@ref) `p`, `away` from the executer.
+"""
 function twist(p::LinearSequence, f::FrameNode, away::Bool)
     i = findframenode(f, p)
     n = maximum(idx, Iterators.filter(!isframenode, p); init=0)

@@ -105,12 +105,15 @@ end
 
 """
 An `ExtendPassage` represents the extension of the string in order to make it taut. 
+It corresponds with simplifications of the knot diagram which topologically don't affect the loop.
 It has no arguments. Represented in Storer with the symbol "|".
 
 ```jldoctest
 julia> pass"|"(seq"L1:x1(0):x1(U):R1")
 seq"L1:R1"
 ```
+
+See also [`simplify`](@ref)
 """
 struct ExtendPassage <: Passage 
     k::Int
@@ -138,6 +141,8 @@ arrow on top if the finger travels over other strings (the `over` flag) and a do
 pointing arrow "↓" if it picks the argument from above (the `above` flag). The argument
 `A` represents a framenode, appended with the letter `n` or `f` if the string picked is
 one `near` the executer or not. 
+
+See also [`pick`](@ref)
 """
 struct PickPassage{FN,FR} <: Passage
     fun::FN
@@ -309,7 +314,7 @@ julia> pass"<<<1"
 pass"<<<1"
 ```
 
-See also [`pass""`](@ref)
+See also [`pass""`](@ref), [`twist`](@ref)
 """
 struct TwistPassage{T <: AbstractFrameRef} <: Passage
     arg::T

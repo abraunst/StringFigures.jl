@@ -12,8 +12,11 @@ LinearSequence
 @seq_str
 @open_str
 @storer_str
-simplify
 plot
+release
+twist
+pick
+simplify
 ```
 
 ## Passages
