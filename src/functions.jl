@@ -245,7 +245,7 @@ function lemma2c(p::LinearSequence, i1::Int, i2::Int, i3::Int)
 end
 
 #"ϕ₃ simplifications (lemma 2c), based on string total length/tension"
-function simplify3(q::LinearSequence; k=1, beta=1.0, mult=2000)
+function simplify3(q::LinearSequence; k=1, mult=2000, beta=100.0)
     ten = tension(q) + mult*length(q)
     p = simplify12(q)
     p1 = q
@@ -257,7 +257,7 @@ function simplify3(q::LinearSequence; k=1, beta=1.0, mult=2000)
                 if p[k1] isa CrossNode && p[k2] == inverse(p[k1])
                     p1 = lemma2c(p, i, i+1, j1, j2, k1, k2) |> simplify12
                     ten1 = tension(p1) + mult*length(p1)
-                    if ten1 < ten
+                    if rand() < exp(beta*(ten - ten1))
                         p = p1
                         break
                         #@show p
@@ -270,9 +270,13 @@ function simplify3(q::LinearSequence; k=1, beta=1.0, mult=2000)
 end
 
 "Extension-cancellation simplifications"
-function simplify(p::LinearSequence; k=0.5)
-    for beta in 1:0.1:5
-        p = simplify3(p; beta)
+function simplify(p::LinearSequence; k=0.5, fact=0.0)
+    while true
+        q = simplify3(p)
+        if q == p
+            break
+        end
+        p = q
     end
     p
 end

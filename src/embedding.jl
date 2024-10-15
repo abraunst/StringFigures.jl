@@ -25,20 +25,6 @@ function intersection!(x,y,i,v1,v2,v3,v4)
     end
 end
 
-function tense_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
-    x, y = tutte_embedding(g; vfixed, locs_fixed)
-    for _ in 1:10
-        for i in 1:nv(g)
-            if degree(g, i) == 4
-                P = [[x[j],y[j]] for j in neighbors(g,i)]
-                intersection!(x,y,i,P[1],P[2],P[3],P[4])
-                intersection!(x,y,i,P[1],P[3],P[2],P[4])
-                intersection!(x,y,i,P[1],P[4],P[3],P[2])
-            end
-        end
-    end
-    x, y
-end
 
 function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     D = Dict{SeqNode, Int}()
@@ -115,6 +101,22 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
         end
     end
     i, vlabels, vfixed, pfixed, D
+end
+
+
+function tense_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
+    x, y = tutte_embedding(g; vfixed, locs_fixed)
+    for _ in 1:10
+        for i in 1:nv(g)
+            if degree(g, i) == 4
+                P = [[x[j],y[j]] for j in neighbors(g,i)]
+                intersection!(x,y,i,P[1],P[2],P[3],P[4])
+                intersection!(x,y,i,P[1],P[3],P[2],P[4])
+                intersection!(x,y,i,P[1],P[4],P[3],P[2])
+            end
+        end
+    end
+    x, y
 end
 
 
