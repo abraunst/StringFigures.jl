@@ -1,3 +1,5 @@
+using Random
+
 """
 `release(p::LinearSequence, f::FrameNode)`
 
@@ -32,39 +34,32 @@ end
 
 # "ϕ₁ and ϕ₂ simplifications (lemmas 2a and 2b)"
 function simplify12(p::LinearSequence)
+    rem = Int[]
     while true
         p = canonical(p)
         isadjacent(i, j) = abs(i - j) ∈ (1, length(p) - 1)
-        D1 = Dict{Int,Int}()
-        D2 = Dict{Int,Int}()
+        O = Dict{Int,Int}()
+        U = Dict{Int,Int}()
 
         for (i, n) in pairs(p)
-            #@show n type(n) idx(n)
             if type(n) == :O
-                D1[idx(n)] = i
+                O[idx(n)] = i
             elseif type(n) == :U
-                D2[idx(n)] = i
+                U[idx(n)] = i
             end
         end
-        #@show D1 D2
-        rem = Int[]
-        for (j, i) in pairs(D1)
+
+        empty!(rem)
+        for (j, i) in pairs(O)
             j ∈ rem && continue
             # lemma 2a
-            #@show D2 j D2[j] i isadjacent(D2[j], i)
-            if isadjacent(D2[j], i)
-                push!(rem, i)
-                push!(rem, D2[j])
+            if isadjacent(U[j], i)
+                push!(rem, i, U[j])
                 break
             end
             # lemma 2b
-            if j > 1 &&
-               isadjacent(i, D1[j-1]) &&
-               isadjacent(D2[j], D2[j-1])
-                push!(rem, i)
-                push!(rem, D1[j-1])
-                push!(rem, D2[j])
-                push!(rem, D2[j-1])
+            if j > 1 && isadjacent(i, O[j-1]) && isadjacent(U[j], U[j-1])
+                push!(rem, i, O[j-1], U[j], U[j-1])
                 break
             end
         end
@@ -87,6 +82,16 @@ function pick_sameside(p::LinearSequence, f::FrameNode, args::Vector{Tuple{Frame
     i = findframenode(arg, p)
     argnext = (near == isnearsidenext(p, i))
     pick_path(p, f, i, argnext, path)
+end
+
+function pick_otherside(p::LinearSequence, f::FrameNode, away::Bool, args)
+    arg, _, over = args[end]
+    extra = away ? (0, 0) : (6, 0) ## check
+    farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
+    p = pick_sameside(p, farg, args)
+    p.seq[findframenode(farg, p)] = ffun
+    p = pick_sameside(p, over, f, ffun, idx(f) < extra)
+    p = release(p, ffun)
 end
 
 #"""
@@ -176,15 +181,8 @@ function pick(p::LinearSequence, over::Bool, away::Bool, f::FrameNode, arg::Fram
     pick(p, f, away, [(arg, near, over)], above)
 end
 
-
-function pick_otherside(p::LinearSequence, f::FrameNode, away::Bool, args)
-    arg, _, over = args[end]
-    extra = away ? (0, 0) : (6, 0) ## check
-    farg, ffun = FrameNode(type(arg), extra...), FrameNode(type(f), extra...)
-    p = pick_sameside(p, farg, args)
-    p.seq[findframenode(farg, p)] = ffun
-    p = pick_sameside(p, over, f, ffun, idx(f) < extra)
-    p = release(p, ffun)
+function pick(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}}, above::Bool=false)
+    pick(p::LinearSequence, f::FrameNode, idx(f) < idx(args[end][1]), args, above)
 end
 
 function pick(p::LinearSequence, f::FrameNode, away::Bool, args::Vector{Tuple{FrameNode,Bool,Bool}}, above::Bool=false)
@@ -197,9 +195,7 @@ function pick(p::LinearSequence, f::FrameNode, away::Bool, args::Vector{Tuple{Fr
     simplify(p)
 end
 
-function pick(p::LinearSequence, f::FrameNode, args::Vector{Tuple{FrameNode,Bool,Bool}}, above::Bool=false)
-    pick(p::LinearSequence, f::FrameNode, idx(f) < idx(args[end][1]), args, above)
-end
+
 
 """
 `twist(p::LinearSequence, f::FrameNode, away::Bool)`
@@ -249,37 +245,34 @@ function lemma2c(p::LinearSequence, i1::Int, i2::Int, i3::Int)
 end
 
 #"ϕ₃ simplifications (lemma 2c), based on string total length/tension"
-function simplify3(q::LinearSequence; k=0.5, mult=10^4)
-    ten = tension(q; k) + mult*length(q)
+function simplify3(q::LinearSequence; k=1, beta=1.0, mult=2000)
+    ten = tension(q) + mult*length(q)
     p = simplify12(q)
-    p1 = p
-    for i in eachindex(p)
-        if p[i] isa CrossNode && p[i+1] isa CrossNode &&
-           type(p[i]) == type(p[i+1]) && idx(p[i]) != idx(p[i+1])
+    p1 = q
+    for i in shuffle(eachindex(p))
+        if type(p[i]) == type(p[i+1]) && type(p[i]) ∈ (:O,:U) && idx(p[i]) != idx(p[i+1])
             j1 = findfirst(==(inverse(p[i])), p)
             j2 = findfirst(==(inverse(p[i+1])), p)
             for (k1, k2) in ((j1 + 1, j2 + 1), (j1 + 1, j2 - 1), (j1 - 1, j2 + 1), (j1 - 1, j2 - 1))
-                if p[k1] isa CrossNode && p[k2] isa CrossNode && p[k1] == inverse(p[k2])
-                    p1 = lemma2c(p, i, i+1, j1, j2, k1, k2)
-                    p1 = simplify12(p1)
-                    ten1 = tension(p1; k) + mult*length(p1)
+                if p[k1] isa CrossNode && p[k2] == inverse(p[k1])
+                    p1 = lemma2c(p, i, i+1, j1, j2, k1, k2) |> simplify12
+                    ten1 = tension(p1) + mult*length(p1)
                     if ten1 < ten
                         p = p1
-                        ten = ten1
+                        break
+                        #@show p
                     end
                 end
             end
         end
     end
-    return p1
+    return p
 end
 
 "Extension-cancellation simplifications"
 function simplify(p::LinearSequence; k=0.5)
-    q = simplify12(p)
-    while true
-        q = simplify3(q; k)
-        q == p && return q
-        p = q
+    for beta in 1:0.1:5
+        p = simplify3(p; beta)
     end
+    p
 end

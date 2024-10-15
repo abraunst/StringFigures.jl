@@ -15,6 +15,31 @@ function tutte_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
     v[:,1], v[:,2]
 end
 
+cross(v1,v2) = v1[1]*v2[2]-v1[2]*v2[1]
+
+function intersection!(x,y,i,v1,v2,v3,v4)
+    a = cross(v1-v3, v4-v3)
+    b = cross(v1-v2, v4-v3)
+    if 0 < a/b < 1
+        x[i],y[i] = a/b*(v2-v1)+v1
+    end
+end
+
+function tense_embedding(g; vfixed=1:0, locs_fixed=fill(0.0, 0, 2))
+    x, y = tutte_embedding(g; vfixed, locs_fixed)
+    for _ in 1:10
+        for i in 1:nv(g)
+            if degree(g, i) == 4
+                P = [[x[j],y[j]] for j in neighbors(g,i)]
+                intersection!(x,y,i,P[1],P[2],P[3],P[4])
+                intersection!(x,y,i,P[1],P[3],P[2],P[4])
+                intersection!(x,y,i,P[1],P[4],P[3],P[2])
+            end
+        end
+    end
+    x, y
+end
+
 function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
     D = Dict{SeqNode, Int}()
     function pos(n)
@@ -93,16 +118,17 @@ function node_labels_and_fixed_positions(p::LinearSequence; crossings=true)
 end
 
 
-function tension(p::LinearSequence; k=0.5)
+function tension(p::LinearSequence)
     n, _, vfixed, pfixed, Didx = node_labels_and_fixed_positions(p)
     locs_fixed = reduce(vcat, p' for p in pfixed)
-    g = SimpleGraphFromIterator(Iterators.Flatten(
-        ((Edge(Didx[p[i]], n + i),(Edge(n + i, Didx[p[i + 1]])))  for i in eachindex(p))))
-    x, y = tutte_embedding(g; vfixed, locs_fixed);
+    g = SimpleGraphFromIterator((Edge(Didx[p[i]], Didx[p[i+1]]) for i in eachindex(p)))
+    x, y = tense_embedding(g; vfixed, locs_fixed);
     nrg = 0.0
     for i in vertices(g)
         for j in neighbors(g, i)
-            nrg += ((x[i]-x[j])^2 + (y[i]-y[j])^2)^k
+            if i < j
+                nrg += sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2)
+            end
         end
     end
     return nrg
@@ -127,7 +153,7 @@ Example2: plot(proc"OA::DL1|"; shadowc="white", stringc="black", nodelabelc="bla
 """
 function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
             labels=true, shadowc = HSLA(colorant"black", 1.0), stringc=colorant"white", fact=1.0, 
-            nodelabelc=colorant"white", kwd...)
+            nodelabelc=colorant"white", embedding=tutte_embedding, kwd...)
     
     q = SeqNode[];
     for (i,n) in pairs(p)
@@ -167,7 +193,7 @@ function plot(p::LinearSequence; rfact=0.02, randomize=false, crossings=false,
 
     append!(vlabels, fill("", nv(g)-n))
 
-    locs_x, locs_y = tutte_embedding(g; vfixed, locs_fixed);
+    locs_x, locs_y = embedding(g; vfixed, locs_fixed);
     #return gplot(gover, locs_x, locs_y; NODESIZE=0.01)
 
     if randomize
