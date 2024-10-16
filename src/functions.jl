@@ -245,11 +245,11 @@ function lemma2c(p::LinearSequence, i1::Int, i2::Int, i3::Int)
 end
 
 #"ϕ₃ simplifications (lemma 2c), based on string total length/tension"
-function simplify3(q::LinearSequence; k=1, mult=2000, beta=100.0)
+function simplify3(q::LinearSequence; k=1, mult=10^4, beta=10^4)
     ten = tension(q) + mult*length(q)
     p = simplify12(q)
     p1 = q
-    for i in shuffle(eachindex(p))
+    for i in eachindex(p)
         if type(p[i]) == type(p[i+1]) && type(p[i]) ∈ (:O,:U) && idx(p[i]) != idx(p[i+1])
             j1 = findfirst(==(inverse(p[i])), p)
             j2 = findfirst(==(inverse(p[i+1])), p)
@@ -257,7 +257,7 @@ function simplify3(q::LinearSequence; k=1, mult=2000, beta=100.0)
                 if p[k1] isa CrossNode && p[k2] == inverse(p[k1])
                     p1 = lemma2c(p, i, i+1, j1, j2, k1, k2) |> simplify12
                     ten1 = tension(p1) + mult*length(p1)
-                    if rand() < exp(beta*(ten - ten1))
+                    if ten1 ≤ ten
                         p = p1
                         break
                         #@show p
