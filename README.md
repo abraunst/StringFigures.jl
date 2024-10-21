@@ -31,7 +31,7 @@ To run tests in [test/runtests.jl](./test/runtests.jl):
 julia> Pkg.test("StringFigures")
 ```
 
-To create and plot a simple figure in a jupyter notebook, the following into a cell and execute it:
+To create and plot a simple figure in a jupyter notebook, paste the following into a cell and execute it:
 
 ```julia
 using StringFigures
