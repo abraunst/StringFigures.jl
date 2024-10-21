@@ -77,8 +77,14 @@ node"xxx" generates either a [`FrameNode`](@ref) or a [`CrossNode`](@ref).
 julia> node"L1"
 node"L1"
 
+julia> show(node"L1")
+L1
+
 julia> node"x100(0)"
 node"x100(0)"
+
+julia> show(node"x100(U)")
+x100(U)
 ```
 """
 macro node_str(s)
