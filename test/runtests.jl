@@ -1,8 +1,5 @@
-using StringFigures
-using Test
-using Documenter
+using Test, Documenter, StringFigures
 
-@testset "StringFigures.jl" begin
     @testset "canonical" begin
         include("canonical_tests.jl")
     end
@@ -20,6 +17,6 @@ using Documenter
     end
 
     @testset "doctests" begin
+        DocMeta.setdocmeta!(StringFigures, :DocTestSetup, :(using StringFigures); recursive=true)
         doctest(StringFigures; manual = false)
     end
-end
