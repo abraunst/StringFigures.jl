@@ -6,6 +6,7 @@ on:
     tags: ['*']
     paths-ignore:
       - '*.md'
+      - '*.ipynb'
   pull_request:
 concurrency:
   # Skip intermediate builds: always.
