@@ -1,5 +1,6 @@
 using StringFigures
 using Test
+using Documenter
 
 @testset "StringFigures.jl" begin
     @testset "canonical" begin
@@ -17,5 +18,8 @@ using Test
     @testset "calculus" begin
         include("calculus_tests.jl")
     end
-    
+
+    @testset "doctests" begin
+        doctest(StringFigures; manual = false)
+    end
 end
