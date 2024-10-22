@@ -18,6 +18,7 @@ end
 
 @testset "plot" begin
     @test_nowarn plot(open"O0")
+    @test_nowarn plot(proc"OA::D1#D2")
     @test_throws Exception plot(seq"x1(0):x1(U)")
 end
 
