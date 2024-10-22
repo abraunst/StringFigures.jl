@@ -6,6 +6,7 @@ Storer, Thomas F. String-figures. Math Department, University of Michigan, 1999
 
 [![Build Status](https://github.com/abraunst/StringFigures.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/abraunst/StringFigures.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Documentation](https://img.shields.io/badge/docs-main-blue.svg)](https://abraunst.github.io/StringFigures.jl)
+[![Coverage](https://codecov.io/gh/abraunst/StringFigures.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/abraunst/StringFigures.jl)
 
 ![brochos](images/brochos.svg)
 
