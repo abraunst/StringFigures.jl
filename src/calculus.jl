@@ -121,11 +121,14 @@ end
 """
 `proc"xxx"` creates a [`StringProcedure`](@ref) from string "xxx"
 ```jldoctest
-julia> proc"OA::D1"
+julia> p = proc"OA::D1"
 proc"OA::D1#"
 
-julia> proc"OA::D1" |> last
+julia> last(p)
 seq"L2:x1(U):R5:L5:x1(0):R2:x2(0):x2(U)"
+
+julia> show(stdout, MIME"text/latex"(), proc"OA::D1#[L2o(L5n)]^2#>1")
+\${{OA}}~::~{{{\\square 1}}}\\# {{{\\left[{{{\\overset{\\longrightarrow}{L2}\\left(\\underline{L5n}\\right)}}}\\# \\right]^{2}}}}\\# {{{>1}}}\\# \$
 ```
 """
 macro proc_str(s)
