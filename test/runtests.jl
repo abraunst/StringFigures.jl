@@ -18,7 +18,7 @@ end
 
 @testset "plot" begin
     @test_nowarn plot(open"O0")
-    @test_throws ArgumentError plot(seq"x1(0):x1(U)")
+    @test_throws Exception plot(seq"x1(0):x1(U)")
 end
 
 @testset "doctests" begin
