@@ -16,7 +16,13 @@ end
     include("calculus_tests.jl")
 end
 
+@testset "plot" begin
+    @test_nowarn plot(open"O0")
+    @test_throws ArgumentError plot(seq"x1(0):x1(U)")
+end
+
 @testset "doctests" begin
     DocMeta.setdocmeta!(StringFigures, :DocTestSetup, :(using StringFigures); recursive=true)
     doctest(StringFigures; manual = false)
 end
+
