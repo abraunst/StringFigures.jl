@@ -27,3 +27,9 @@ end
     @test proc"OA::1ua(2f)"[end] == proc"OA::L1ua(L2f)#R1ua(R2f)"[end]
     @test proc"OA::N1"[end] == proc"OA::NL1#NR1"[end]
 end
+
+@testset "latex" begin
+    io = IOBuffer()
+    show(io, MIME"text/latex"(), proc"OA::D1#[L2o(L5n)]^2#>1")
+    String(take!(io)) == "\${{OA}}~::~{{{\\square 1}}}\\# {{{\\left[{{{\\overset{\\longrightarrow}{L2}\\left(\\underline{L5n}\\right)}}}\\# \\right]^{2}}}}\\# {{{>1}}}\\# \$"
+end

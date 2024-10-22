@@ -5,6 +5,10 @@ Test parsing linear sequences.
 """
 
 
+@testset "parse error" begin
+    @test_throws Meta.ParseError StringFigures.parsepeg(StringFigures.snode, "y1(0)")
+end
+
 @testset "parse nodes" begin
     # fingers
     expect = [FrameNode(:L, 1), FrameNode(:L, 5), FrameNode(:R, 5), FrameNode(:R, 1)]
@@ -17,7 +21,6 @@ Test parsing linear sequences.
     @test CrossNode(:U, 1) == node"x1(U)"
     # not sure if there's a string figure with 99 crossings, but it's allowed
     @test CrossNode(:O, 99) == node"x99(0)"
-
 end
 
 @testset "parse sequence" begin

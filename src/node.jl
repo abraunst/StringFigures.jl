@@ -63,7 +63,8 @@ function parsepeg(peg, s)
         parse_whole(peg, s)
     catch e
         if e isa Meta.ParseError
-            println(e.msg)
+            @error e.msg
+            rethrow()
         else
             rethrow(e)
         end
