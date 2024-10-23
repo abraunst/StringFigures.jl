@@ -163,6 +163,12 @@ end
 
 ### Indexed procedure, used to plot sequence of figures
 
+
+struct ProcedurePlot{K}
+    p::StringProcedure
+    kwd::K
+end
+
 struct IndexedProcedure
     p::StringProcedure
     idx::Int
@@ -182,7 +188,10 @@ end
 
 Base.length(p::StringProcedure) = length(p.calculus) + 1
 
-function plot(p::StringProcedure; kwd...)
+plot(p::StringProcedure; kwd...) = ProcedurePlot(p, kwd)
+
+function Base.display(plt::ProcedurePlot)
+    p, kwd = plt.p, plt.kwd
     for (i,l) in enumerate(p)
         display(IndexedProcedure(p, i-1))
         display(plot(l; kwd...))
