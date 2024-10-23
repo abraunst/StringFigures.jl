@@ -10,6 +10,7 @@ export LinearSequence, SeqNode, FrameNode, CrossNode, FrameRef, BiFrameRef,
         TwistPassage, NavahoPassage, MultiPickPassage,
         StringCalculus, StringProcedure
 
+include("peg.jl")
 include("node.jl")
 include("linearsequence.jl")
 include("embedding.jl")

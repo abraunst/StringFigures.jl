@@ -1,5 +1,3 @@
-using PEG
-
 ####### Nodes in a linear sequence
 
 abstract type SeqNode end
@@ -58,18 +56,6 @@ loop(n::FrameNode) = n.loop
 
 Base.:(<)(s::FrameNode, t::FrameNode) = idx(s) < idx(t)
 
-function parsepeg(peg, s)
-    try 
-        parse_whole(peg, s)
-    catch e
-        if e isa Meta.ParseError
-            @error e.msg
-            rethrow()
-        else
-            rethrow(e)
-        end
-    end
-end
 
 """
 node"xxx" generates either a [`FrameNode`](@ref) or a [`CrossNode`](@ref).
