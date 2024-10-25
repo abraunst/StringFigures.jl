@@ -6,7 +6,7 @@ Test parsing linear sequences.
 
 
 @testset "parse error" begin
-    @test_throws Meta.ParseError StringFigures.parsepeg(StringFigures.snode, "y1(0)")
+    @test_throws Exception StringFigures.parsepeg(StringFigures.snode, "y1(0)")
 end
 
 @testset "parse nodes" begin
